@@ -75,20 +75,32 @@ const NUMFR = { 'quatorze': '14', 'euros': '€', 'cinq': '5', 'six': '6', 'sept
 function makeGroups(words, map = NUMFR, maxW = 3, maxC = 15) {
   const gs = []; let g = [];
   const push = () => { if (g.length) gs.push(g); g = []; };
+  // nombres français en toutes lettres -> chiffres (« deux cent vingt-cinq » -> 225)
+  const UN = { un: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10, onze: 11, douze: 12, treize: 13, quatorze: 14, quinze: 15, seize: 16, vingt: 20, vingts: 20, trente: 30, quarante: 40, cinquante: 50, soixante: 60, cent: 100, cents: 100, mille: 1000, et: 0 };
+  const numTok = w => { const p = w.toLowerCase().replace(/[.,:?!…]+$/, '').replace(/\.\.\.$/, '').split('-'); return p.length && p.every(x => x in UN) && !(p.length === 1 && p[0] === 'et') ? p : null; };
   const W2 = [];
-  for (let i = 0; i < words.length; i++) { // « cent soixante » -> 160, « cent trente » -> 130
-    const [r, s, e] = words[i], n = words[i + 1];
-    if (/^cent$/i.test(r) && n && /^(soixante|trente)/i.test(n[0])) { const v = /^soixante/i.test(n[0]) ? '160' : '130'; W2.push([v + n[0].replace(/^[a-zé]+/i, ''), s, n[2]]); i++; }
-    else W2.push(words[i]);
+  for (let i = 0; i < words.length; i++) {
+    let p = numTok(words[i][0]);
+    if (!p || (p.length === 1 && p[0] === 'un' && !/[.…]/.test(words[i][0]))) { W2.push(words[i]); continue; }
+    let total = 0, cur = 0, j = i, last = words[i];
+    const eat = parts => { for (const x of parts) { const v = UN[x]; if (v === 100) cur = (cur || 1) * 100; else if (v === 1000) { total += (cur || 1) * 1000; cur = 0; } else if (x === 'vingt' && cur % 100 === 4) cur = cur - 4 + 80; else cur += v; } };
+    eat(p);
+    while (!/[.,:?!…]$/.test(last[0]) && j + 1 < words.length && (p = numTok(words[j + 1][0]))) { j++; last = words[j]; eat(p); }
+    const punct = (last[0].match(/(\.\.\.|[.,:?!…])$/) || [''])[0];
+    W2.push([String(total + cur) + punct, words[i][1], last[2]]); i = j;
   }
   for (const [raw, s, e] of W2) {
     if (/^\[|\]$/.test(raw)) continue;
+    if (/^[«»]$/.test(raw)) continue;
+    if (raw === ':' && g.length && g[g.length - 1].w.length === 1) { g[g.length - 1].w += ' :'; continue; } // « A : 120 € »
     if (/^[?:!;]$/.test(raw)) { // ponctuation isolée : rattacher au mot précédent
       if (raw === '?' || raw === '!') { const last = g.length ? g[g.length - 1] : (gs.length ? gs[gs.length - 1][gs[gs.length - 1].length - 1] : null); if (last) last.w += ' ' + raw; }
       push(); continue;
     }
     const clean = raw.replace(/\.\.\.$/, '').replace(/[.,:]$/, '');
     const disp = (map[clean.toLowerCase()] || clean).toUpperCase();
+    const prevW = g.length ? g[g.length - 1] : (gs.length ? gs[gs.length - 1][gs[gs.length - 1].length - 1] : null);
+    if (disp === '€' && prevW && /\d$/.test(prevW.w)) { prevW.w += ' €'; prevW.e = e; if (/[.,?:!]|\.\.\.$/.test(raw)) push(); continue; }
     g.push({ w: disp, s, e });
     const chars = g.reduce((n, x) => n + x.w.length + 1, 0);
     if (/[.,?:!]|\.\.\.$/.test(raw) || g.length >= maxW || chars > maxC) push();

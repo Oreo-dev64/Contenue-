@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Le jeu — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 4 — « LE JEU » (Nike Zabuza)   voix : voix_quiz.mp3, 26.8 s
+   0.00  S1  Fond bleu à rayons tournants, « JEU RAPIDE ! » encadré d'ampoules — impact, blips
+   0.96  S2  Téléphone 3D + vraie annonce, loupe sur 260 €                    — whoosh, ticks
+   4.52  S3  « TU LE PAIES COMBIEN ? » + réponses A / B / C qui claquent        — pops
+  11.76  S4  Compte à rebours 3-2-1 dans un anneau qui se vide               — ticks, riser
+  14.96  S5  A et B tombent en rouge, C passe au vert → « 35 € » 3D           — buzz, ding, confettis
+  17.60  S6  Graphique : barre achat 35 € vs vente 260 € → « +225 € de marge » — whoosh, caisse
+  21.16  S7  Flood vert : le fournisseur 14 € en 3D                          — impact
+  23.28  S8  Bulle de commentaire « ZABUZA » qui se multiplie                — pops
+  25.88  S9  Fin : LIEN EN BIO                                               — impact, ring-out
+   ===================================================================== */
+const DUR = 28.5;
+const IMG = "assets/vinted_zabuza.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("quiz");
+const GROUPS = makeGroups(WORDS);
+const BG = [[0, C.blue], [15.2, C.lime], [17.62, C.ink], [21.4, C.lime], [23.3, C.blue], [26.1, C.lime]];
+const HITS = [[0.1, 20], [3.0, 14], [6.64, 8], [8.4, 8], [10.08, 8], [11.76, 12], [12.68, 12], [13.6, 16], [14.96, 24], [15.6, 18], [19.64, 18], [21.4, 20], [22.36, 18], [26.1, 16], [26.44, 14]];
+const SCENES = [[0, 'JEU'], [0.96, "L'ARTICLE"], [4.52, 'LA QUESTION'], [11.76, 'CHRONO'], [14.96, 'LA RÉPONSE'], [17.6, 'LA MARGE'], [21.16, 'FOURNISSEUR'], [23.28, 'COMMENTAIRE'], [25.88, 'FOURNISSEUR 14 €']];
+const ANS = [['A', '120 €', 6.64, 7.28], ['B', '60 €', 8.4, 8.96], ['C', '35 €', 10.08, 10.64]];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(5);
+  const bg = E(stage, '', '', 'full');
+  const sun = E(stage, `width:2800px;height:2800px;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.075) 0deg 7.5deg, rgba(255,255,255,0) 7.5deg 15deg)`, '', 'L');
+  const world = E(stage, '', '', 'full');
+
+  // ================= S1 =================
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const plate = E(A, `width:900px;height:280px;border-radius:140px;background:${C.ink};box-shadow:0 0 0 10px ${C.lime},0 30px 60px rgba(0,0,0,.35)`, '', 'L');
+  const NB = 30, bulbs = [];
+  for (let i = 0; i < NB; i++) bulbs.push(E(plate, `width:22px;height:22px;border-radius:50%;background:#FFE27A;box-shadow:0 0 14px #FFD23F`, '', 'L'));
+  // positions des ampoules sur le contour (stade)
+  const per = (u => { const w = 900, h = 280, r = 140, L1 = w - 2 * r, Lc = Math.PI * r, tot = 2 * L1 + 2 * Lc; let d = u * tot; const off = 30;
+    if (d < L1) return [r + d, -off + 6]; d -= L1;
+    if (d < Lc) { const a = -Math.PI / 2 + d / r; return [w - r + Math.cos(a) * (r + off - 6), r + Math.sin(a) * (r + off - 6)]; } d -= Lc;
+    if (d < L1) return [w - r - d, h + off - 6]; d -= L1;
+    const a = Math.PI / 2 + d / r; return [r + Math.cos(a) * (r + off - 6), r + Math.sin(a) * (r + off - 6)]; });
+  bulbs.forEach((b, i) => { const [x, y] = per(i / NB); b.style.transform = `translate(${x - 11}px,${y - 11}px)`; });
+  const aJeu = Tx(plate, 'JEU RAPIDE !', `font:120px AB;color:#fff;letter-spacing:-.03em;left:450px;top:140px;transform:translate(-50%,-50%)`);
+
+  // ================= S2 : annonce =================
+  const B = E(world, 'perspective:1700px', '', 'full');
+  const bKick = Tx(B, '', `font:500 32px JM;letter-spacing:.2em;color:#fff`);
+  const bPrice = E(B, 'display:flex;align-items:baseline;white-space:nowrap;width:max-content', '', 'L');
+  const bNum = E(bPrice, `font:240px AB;color:${C.lime};letter-spacing:-.05em;line-height:1`, '0');
+  E(bPrice, `font:150px AB;color:${C.lime};margin-left:20px;line-height:1`, '€');
+  const bSur = Tx(B, 'SUR VINTED', `font:500 30px JM;letter-spacing:.3em;color:#fff;border:2px solid rgba(255,255,255,.6);border-radius:40px;padding:10px 22px`);
+  const ph = E(B, 'width:500px;height:1060px', '', 'L p3');
+  E(ph, `position:absolute;inset:0;background:#0E0E14;border-radius:74px;box-shadow:0 60px 100px rgba(0,0,0,.45), inset 0 0 0 3px #34343f`);
+  const scr = E(ph, `position:absolute;left:14px;top:14px;width:472px;height:1032px;border-radius:60px;overflow:hidden;background:#fff`, `<img src="${IMG}" style="width:472px;display:block">`);
+  const glare = E(scr, `position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.35) 45%,transparent 60%)`);
+  const ring = E(B, `border:6px solid ${C.lime};border-radius:18px`, '', 'L');
+  const lineEl = E(B, `height:4px;background:${C.lime};transform-origin:0 50%`, '', 'L');
+  const lens = E(B, `width:380px;height:380px;border-radius:50%;border:8px solid ${C.lime};background-color:#fff;background-image:url(${IMG});background-size:${IW}px ${IH}px;box-shadow:0 30px 60px rgba(0,0,0,.4)`, '', 'L');
+
+  // ================= S3/S4/S5 : quiz =================
+  const Q = E(world, 'perspective:1600px', '', 'full');
+  const qT1 = MW(Q, 'TU LE PAIES', `font:110px AB;color:#fff;letter-spacing:-.03em`);
+  const qT2 = MW(Q, 'COMBIEN ?', `font:150px AB;color:${C.lime};letter-spacing:-.04em`);
+  const tiles = ANS.map(([l, p]) => {
+    const e = E(Q, `width:880px;height:160px;border-radius:80px;background:${C.ink};display:flex;align-items:center;gap:34px;padding:0 22px;box-shadow:0 20px 40px rgba(0,0,0,.3)`, '', 'L');
+    const lc = E(e, `flex:none;width:118px;height:118px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:72px AB;color:${C.ink}`, l);
+    const pr = E(e, `font:96px AB;color:#fff;letter-spacing:-.03em;white-space:nowrap`, p);
+    const mk = E(e, `margin-left:auto;margin-right:20px;width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center`, '');
+    return { e, lc, pr, mk };
+  });
+  const timer = E(Q, 'width:340px;height:340px', svg('0 0 340 340', `<circle cx="170" cy="170" r="150" fill="${C.ink}"/><circle class="tr" cx="170" cy="170" r="150" fill="none" stroke="${C.lime}" stroke-width="20" stroke-linecap="round" stroke-dasharray="942.5" stroke-dashoffset="0" transform="rotate(-90 170 170)"/>`, 340, 340), 'L');
+  const timerRing = timer.querySelector('.tr');
+  const timerN = Tx(timer, '3', `font:220px AB;color:#fff;left:170px;top:178px;transform:translate(-50%,-50%);letter-spacing:-.04em`);
+  const fC = E(world, `width:100px;height:100px;border-radius:50%;background:${C.lime}`, '', 'L');
+  const R5 = E(world, 'perspective:1800px', '', 'full');
+  const rTile = E(R5, `width:560px;height:140px;border-radius:70px;background:${C.ink};display:flex;align-items:center;gap:26px;padding:0 20px;width:max-content;padding-right:44px`, `<div style="width:100px;height:100px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:60px AB;color:${C.ink}">C</div><span style="font:56px AB;color:#fff">BONNE RÉPONSE ✓</span>`, 'L');
+  const ext35 = EXT(R5, '35 €', 340, 24, 100, C.ink, '#3E4A12', '#1C2208');
+  const extSh = E(R5, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)`, '', 'L');
+  const rLiv = Tx(R5, 'LIVRAISON COMPRISE', `font:52px AB;color:${C.lime};background:${C.ink};border-radius:50px;padding:20px 40px 16px`);
+  const conf = Array.from({ length: 34 }, (_, i) => ({ e: E(R5, `width:${18 + R() * 22}px;height:${8 + R() * 12}px;background:${[C.ink, C.blue, '#fff', C.red][i % 4]};border-radius:3px`, '', 'L'), a: R() * Math.PI * 2, d: 400 + R() * 500, r: R() * 900 }));
+  const wM = E(world, `width:1300px;height:2400px;background:${C.ink};clip-path:polygon(0 0,100% 0,100% 92%,0 100%)`, '', 'L');
+
+  // ================= S6 : marge =================
+  const M = E(world, '', '', 'full');
+  const mK = MW(M, 'LA MARGE', `font:110px AB;color:#fff;letter-spacing:-.03em`);
+  const base = E(M, `width:860px;height:6px;background:rgba(255,255,255,.4);border-radius:3px`, '', 'L');
+  const barA = E(M, `width:260px;border-radius:24px 24px 0 0;background:${C.cream};transform-origin:50% 100%`, '', 'L');
+  const barV = E(M, `width:260px;border-radius:24px 24px 0 0;background:${C.lime};transform-origin:50% 100%`, '', 'L');
+  const labA = E(M, 'text-align:center;white-space:nowrap', `<div style="font:500 26px JM;letter-spacing:.2em;color:${C.cream}">ACHAT</div><div style="font:84px AB;color:${C.cream};letter-spacing:-.03em;line-height:1">35 €</div>`, 'L');
+  const labV = E(M, 'text-align:center;white-space:nowrap', `<div style="font:500 26px JM;letter-spacing:.2em;color:${C.lime}">VENTE</div><div style="font:84px AB;color:${C.lime};letter-spacing:-.03em;line-height:1">260 €</div>`, 'L');
+  const dash = E(M, `height:0;border-top:5px dashed rgba(255,255,255,.55)`, '', 'L');
+  const arrow = E(M, 'width:60px', '', 'L');
+  const mPlus = Tx(M, '+225 €', `font:150px AB;color:${C.lime};letter-spacing:-.05em`);
+  const mDe = MW(M, 'de marge', `font:italic 110px IS;color:#fff`);
+  const fF = E(world, `width:100px;height:100px;border-radius:50%;background:${C.lime}`, '', 'L');
+
+  // ================= S7 : fournisseur 14 € =================
+  const F = E(world, 'perspective:1800px', '', 'full');
+  const fLe = MW(F, 'ET LE FOURNISSEUR', `font:80px AB;color:${C.ink};letter-spacing:-.02em`);
+  const fCo = Tx(F, 'IL COÛTE', `font:500 36px JM;letter-spacing:.3em;color:${C.ink}`);
+  const ext = EXT(F, '14€', 400, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const ext14Sh = E(F, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)`, '', 'L');
+  const shT = E(world, `width:1080px;height:980px;background:${C.blue}`, '', 'L');
+  const shB = E(world, `width:1080px;height:980px;background:${C.blue}`, '', 'L');
+
+  // ================= S8 : commentaire =================
+  const K = E(world, '', '', 'full');
+  const kT = MW(K, 'ÉCRIS-LE EN', `font:96px AB;color:#fff;letter-spacing:-.03em`);
+  const kT2 = MW(K, 'COMMENTAIRE', `font:110px AB;color:${C.lime};letter-spacing:-.03em`);
+  const bubble = (big) => E(K, `display:flex;align-items:center;gap:${big ? 26 : 14}px;background:#fff;border-radius:${big ? 40 : 26}px;padding:${big ? '30px 40px 30px 30px' : '14px 24px 14px 14px'};width:max-content;box-shadow:0 20px 40px rgba(0,0,0,.25)`,
+    `<div style="flex:none;width:${big ? 96 : 54}px;height:${big ? 96 : 54}px;border-radius:50%;background:linear-gradient(135deg,${C.lime},${C.blue})"></div><div><div style="font:600 ${big ? 26 : 18}px IT;color:#888">${big ? 'toi · à l\'instant' : 'il y a 1 s'}</div><div class="tx" style="font:${big ? 84 : 44}px AB;color:${C.ink};letter-spacing:-.02em;line-height:1.05">${big ? '' : 'ZABUZA'}</div></div><div style="margin-left:${big ? 30 : 14}px;font:${big ? 44 : 26}px IT;color:${C.red}">♥</div>`, 'L');
+  const bMain = bubble(true), bMainTx = bMain.querySelector('.tx');
+  const minis = Array.from({ length: 9 }, (_, i) => ({ e: bubble(false), x: [210, 840, 260, 860, 180, 820, 300, 900, 540][i], y: [620, 640, 1180, 1160, 900, 920, 1300, 1290, 1340][i], t0: 24.3 + i * .12, r: (R() - .5) * 14 }));
+
+  // ================= S9 : fin =================
+  const fJ = E(world, `width:100px;height:100px;border-radius:50%;background:${C.lime}`, '', 'L');
+  const J = E(world, 'perspective:1800px', '', 'full');
+  const jLe = MW(J, 'LE FOURNISSEUR', `font:84px AB;color:${C.ink};letter-spacing:-.02em`);
+  const ext2 = EXT(J, '14€', 400, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const ext2Sh = E(J, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)`, '', 'L');
+  const jCats = Tx(J, '', `font:500 30px JM;color:${C.ink};letter-spacing:.12em`);
+  const jRule = E(J, `height:3px;background:${C.ink}`, '', 'L');
+  const jPill = E(J, `display:flex;align-items:center;gap:22px;background:${C.ink};border-radius:70px;padding:26px 50px 26px 40px;white-space:nowrap;width:max-content`, `<svg viewBox="0 0 40 40" width="48" height="48"><path d="M20 34 V8 M8 19 L20 7 L32 19" stroke="${C.lime}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:62px AB;color:${C.lime};letter-spacing:-.01em">LIEN EN BIO</span>`, 'L');
+  const jArr = jPill.querySelector('svg');
+
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES });
+  const caps = Captions(stage, GROUPS, { hideAfter: 25.95 });
+
+  const pS = .82;
+  const pX = track(540, [[4.5, -400, 10, .9]]);
+  const tgt = (ox, oy, x, y) => [x + (14 + ox * 472 / IW - 250) * pS, y + (14 + oy * 472 / IW - 530) * pS];
+
+  window.seek = function (T) {
+    const t = clamp(T, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    on(sun, bgc === C.blue);
+    sun.style.transform = P(540, 900) + ` rotate(${t * 14}deg)`;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+
+    // ---------- S1 ----------
+    on(A, t < 1.3);
+    if (t < 1.3) {
+      const k = spring(t - .08, 15, .5), out = easeIn(seg(t, .95, 1.25));
+      plate.style.transform = P(540, 820) + ` scale(${lerp(2.2, 1, k) * clamp(k * 3) * (1 - out)}) rotate(${(1 - k) * -10 + Math.sin(t * 8) * 1.5}deg)`;
+      bulbs.forEach((b, i) => b.style.opacity = ((i + Math.floor(t * 10)) % 2) ? 1 : .25);
+    }
+
+    // ---------- S2 ----------
+    on(B, win(t, .9, 5.3));
+    if (win(t, .9, 5.3)) {
+      const kick = 'ENSEMBLE NIKE ZABUZA';
+      bKick.textContent = kick.slice(0, Math.floor(seg(t, 1.3, 2.3) * kick.length)) + (t < 2.6 && (t * 3 | 0) % 2 ? '▌' : '');
+      bKick.style.transform = P(540, 300); bKick.style.opacity = 1 - seg(t, 4.4, 4.6);
+      const pk = spring(t - 3.0, 16, .5), out = easeIn(seg(t, 4.45, 4.75));
+      on(bPrice, t > 2.7 && t < 4.8);
+      bNum.textContent = String(Math.round(lerp(0, 260, easeOut(seg(t, 2.76, 3.3)))));
+      bPrice.style.transform = P(540, 450 - out * 300) + ` scale(${lerp(1.6, 1, pk) * (1 - out)})`;
+      on(bSur, t > 3.8 && t < 4.8); bSur.style.transform = P(540, 570) + ` scale(${spring(t - 3.88, 16, .6) * (1 - out)})`;
+      const ek = spring(t - 1.0, 8, .75), x = pX(t), y = lerp(2300, 1075, ek);
+      ph.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%) rotateY(${lerp(70, 0, ek) + Math.sin(t * 1.4) * 4 - seg(t, 4.5, 5.2) * 40}deg) rotateX(${Math.sin(t) * 3}deg) rotateZ(${lerp(-12, 0, ek)}deg) scale(${pS})`;
+      glare.style.transform = `translateX(${lerp(-600, 600, seg(t, 1.4, 2.4))}px)`;
+      const lOn = win(t, 2.7, 4.6);
+      on(lens, lOn); on(ring, lOn); on(lineEl, lOn);
+      if (lOn) {
+        const lk = spring(t - 2.76, 14, .6), lout = easeIn(seg(t, 4.3, 4.58));
+        const [tx, ty] = tgt(170, 1908, x, 1075), lx = 820, ly = 1200;
+        lens.style.transform = P(lx, ly) + ` scale(${lk * (1 - lout)})`;
+        lens.style.backgroundPosition = `${-(170 - 182)}px ${-(1908 - 182)}px`;
+        const sc = pS * 472 / IW;
+        ring.style.width = `${200 * sc + 26}px`; ring.style.height = `${80 * sc + 22}px`;
+        ring.style.transform = P(tx, ty) + ` scale(${lk * (1 - lout)})`;
+        const dx = lx - tx, dy = ly - ty, len = Math.hypot(dx, dy) - 190;
+        lineEl.style.width = `${Math.max(0, len * easeOut(seg(t, 2.85, 3.1)) * (1 - lout))}px`;
+        lineEl.style.transform = `translate(${tx}px,${ty}px) rotate(${Math.atan2(dy, dx)}rad)`;
+      }
+    }
+
+    // ---------- S3/S4 ----------
+    on(Q, win(t, 4.45, 15.5));
+    if (win(t, 4.45, 15.5)) {
+      const tOut = ease(seg(t, 11.5, 11.8));
+      on(qT1, tOut < 1); on(qT2, tOut < 1);
+      qT1.style.transform = P(540, 330 - tOut * 300); qT1.reveal(t, 4.52, .03);
+      qT2.style.transform = P(540, 470 - tOut * 300); qT2.reveal(t, 5.6, .035);
+      on(timer, t > 11.6);
+      const tk = spring(t - 11.7, 14, .6);
+      timer.style.transform = P(540, 420) + ` scale(${tk * (1 - easeIn(seg(t, 14.3, 14.6)))})`;
+      timerRing.setAttribute('stroke-dashoffset', 942.5 * clamp((t - 11.76) / 2.5));
+      const cd = t < 12.68 ? '3' : t < 13.6 ? '2' : '1';
+      timerN.textContent = cd;
+      const ct = t < 12.68 ? 11.76 : t < 13.6 ? 12.68 : 13.6, ck = spring(t - ct, 20, .45);
+      timerN.style.transform = `translate(-50%,-50%) scale(${lerp(1.8, 1, ck)})`;
+      timerRing.setAttribute('stroke', t > 13.6 ? C.red : C.lime);
+      tiles.forEach((tl, i) => {
+        const [, , t0, tp] = ANS[i], k = spring(t - t0, 14, .62);
+        on(tl.e, t > t0 - .02);
+        tl.pr.style.opacity = seg(t, tp - .05, tp + .1);
+        tl.pr.style.transform = `translateX(${(1 - spring(t - tp, 18, .7)) * 40}px)`;
+        let y = 760 + i * 210, rot = 0, sc = 1, op = 1;
+        const rev = t >= 14.96;
+        if (rev && i < 2) { const d = t - 14.96 - i * .05; y += 1600 * d * d * (d > .15); rot = (i ? 1 : -1) * Math.min(30, d * 60) * (d > .15); tl.e.style.background = C.red; tl.lc.style.background = '#fff'; tl.mk.innerHTML = svg('0 0 40 40', `<path d="M12 12 L28 28 M28 12 L12 28" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`, 56, 56); }
+        else if (rev && i === 2) { tl.e.style.background = C.lime; tl.pr.style.color = C.ink; tl.lc.style.background = C.ink; tl.lc.style.color = C.lime; sc = 1 + .1 * (1 - spring(t - 14.96, 16, .45)); tl.mk.innerHTML = svg('0 0 40 40', `<path d="M10 21 L17 28 L30 13" stroke="${C.ink}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, 60, 60); }
+        else { tl.e.style.background = C.ink; tl.pr.style.color = '#fff'; tl.lc.style.background = C.lime; tl.lc.style.color = C.ink; tl.mk.innerHTML = ''; }
+        const shk = rev && i < 2 && t < 15.15 ? Math.sin(t * 90) * 10 : 0;
+        tl.e.style.transform = P(lerp(1600, 540, k) + shk, y) + ` rotate(${rot}deg) scale(${sc})`;
+        tl.e.style.opacity = op;
+      });
+    }
+    on(fC, win(t, 14.96, 15.3));
+    if (win(t, 14.96, 15.3)) fC.style.transform = P(540, 1180) + ` scale(${26 * easeIn(seg(t, 15.0, 15.22))})`;
+
+    // ---------- S5 ----------
+    on(R5, win(t, 15.15, 17.7));
+    if (win(t, 15.15, 17.7)) {
+      const rk = spring(t - 15.2, 14, .6);
+      rTile.style.transform = P(540, 330) + ` scale(${rk})`;
+      const k = spring(t - 15.45, 9, .62), sway = Math.sin((t - 15.8) * 1.7) * 14 * seg(t, 15.8, 16.3);
+      ext35.style.transform = `translate(540px,800px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -14, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+      extSh.style.transform = P(540, 1040) + ` scale(${k})`;
+      on(rLiv, t > 16.55); rLiv.style.transform = P(540, 1170) + ` scale(${spring(t - 16.6, 15, .55)})`;
+      conf.forEach(c => { const d = t - 15.0; on(c.e, d > 0 && d < 1.1); if (d > 0) { const kk = easeOut(seg(d, 0, .9)); c.e.style.transform = `translate(${540 + Math.cos(c.a) * c.d * kk}px,${800 + Math.sin(c.a) * c.d * kk + 400 * d * d}px) rotate(${c.r * d}deg)`; c.e.style.opacity = 1 - seg(d, .7, 1.1); } });
+    }
+    on(wM, win(t, 17.35, 17.7));
+    if (win(t, 17.35, 17.7)) wM.style.transform = `translate(-110px,${lerp(-2500, -200, easeIn(seg(t, 17.38, 17.62)))}px)`;
+
+    // ---------- S6 ----------
+    on(M, win(t, 17.6, 21.45));
+    if (win(t, 17.6, 21.45)) {
+      mK.style.transform = P(540, 300); mK.reveal(t, 17.64, .03);
+      const BY = 1260, MAXH = 620, hV = MAXH, hA = MAXH * 35 / 260;
+      base.style.transform = P(540, BY + 3);
+      const ka = spring(t - 17.7, 12, .7), kv = spring(t - 18.2, 9, .75);
+      barA.style.height = `${hA}px`; barA.style.transform = `translate(${330 - 130}px,${BY - hA}px) scaleY(${ka})`;
+      barV.style.height = `${hV}px`; barV.style.transform = `translate(${750 - 130}px,${BY - hV}px) scaleY(${kv})`;
+      labA.style.transform = P(330, BY - hA * ka - 80); labA.style.opacity = seg(t, 17.8, 18.0);
+      labV.style.transform = P(750, BY - hV * kv - 80); labV.style.opacity = seg(t, 18.4, 18.6);
+      on(dash, t > 19.5); dash.style.width = `${560 * easeOut(seg(t, 19.5, 19.8))}px`; dash.style.transform = `translate(200px,${BY - hA}px)`;
+      on(mPlus, t > 19.6);
+      const pk = spring(t - 19.64, 16, .5);
+      mPlus.style.transform = P(330, 760) + ` scale(${lerp(2, 1, pk) * clamp(pk * 2)})`;
+      on(mDe, t > 20.6); mDe.style.transform = P(330, 900); mDe.reveal(t, 20.68, .04);
+    }
+    on(fF, win(t, 21.0, 21.45));
+    if (win(t, 21.0, 21.45)) fF.style.transform = P(540, 960) + ` scale(${26 * easeIn(seg(t, 21.1, 21.4))})`;
+
+    // ---------- S7 ----------
+    on(F, win(t, 21.35, 23.35));
+    if (win(t, 21.35, 23.35)) {
+      fLe.style.transform = P(540, 320); fLe.reveal(t, 21.36, .022);
+      on(fCo, t > 22.05); fCo.style.transform = P(540, 450); fCo.style.opacity = seg(t, 22.1, 22.25);
+      const k = spring(t - 22.0, 9, .62), sway = Math.sin((t - 22.4) * 1.7) * 16 * seg(t, 22.4, 22.9);
+      ext.style.transform = `translate(540px,850px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+      ext14Sh.style.transform = P(540, 1100) + ` scale(${k})`;
+    }
+    on(shT, win(t, 23.0, 23.35)); on(shB, win(t, 23.0, 23.35));
+    if (win(t, 23.0, 23.35)) { const k = easeIn(seg(t, 23.04, 23.3)); shT.style.transform = `translate(0,${lerp(-980, 0, k)}px)`; shB.style.transform = `translate(0,${lerp(1920, 940, k)}px)`; }
+
+    // ---------- S8 ----------
+    on(K, win(t, 23.28, 26.2));
+    if (win(t, 23.28, 26.2)) {
+      kT.style.transform = P(540, 300); kT.reveal(t, 23.3, .03);
+      kT2.style.transform = P(540, 420); kT2.reveal(t, 24.4, .03);
+      const bk = spring(t - 23.4, 12, .6);
+      bMain.style.transform = P(540, lerp(1700, 920, bk)) + ` rotate(${(1 - bk) * 8 - 2}deg) scale(${1 + .06 * (1 - spring(t - 24.1, 18, .5)) * (t > 24.1)})`;
+      const z = 'ZABUZA'; bMainTx.textContent = z.slice(0, Math.floor(seg(t, 23.73, 24.1) * z.length)) + (t < 24.3 && (t * 4 | 0) % 2 ? '|' : '');
+      minis.forEach(m => { const k = spring(t - m.t0, 16, .55); on(m.e, t > m.t0); m.e.style.transform = P(m.x, m.y) + ` rotate(${m.r}deg) scale(${k})`; });
+    }
+
+    // ---------- S9 ----------
+    on(fJ, win(t, 25.8, 26.15));
+    if (win(t, 25.8, 26.15)) fJ.style.transform = P(540, 920) + ` scale(${26 * easeIn(seg(t, 25.84, 26.1))})`;
+    on(J, t >= 26.05);
+    if (t >= 26.05) {
+      jLe.style.transform = P(540, 330); jLe.reveal(t, 26.1, .025);
+      const k = spring(t - 26.1, 9, .62), sway = Math.sin((t - 26.5) * 1.7) * 16 * seg(t, 26.5, 27);
+      ext2.style.transform = `translate(540px,760px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+      ext2Sh.style.transform = P(540, 1010) + ` scale(${k})`;
+      const cats = 'LUXE · RUNNING · STREETWEAR · SNEAKERS';
+      jCats.textContent = cats.slice(0, Math.floor(seg(t, 26.6, 27.4) * cats.length)); jCats.style.transform = P(540, 1105);
+      jRule.style.width = `${760 * easeOut(seg(t, 26.7, 27.3))}px`; jRule.style.transform = P(540, 1170);
+      on(jPill, t > 26.35); jPill.style.transform = P(540, 1300) + ` scale(${spring(t - 26.44, 14, .55)})`;
+      jArr.style.transform = `translateY(${Math.sin(t * 9) * 6}px)`;
+    }
+    const fl = win(t, 14.96, 15.12) ? .6 * (1 - seg(t, 14.96, 15.12)) : 0;
+    on(flash, fl > 0); flash.style.opacity = fl;
+    overlays(t, bgc);
+    caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_quiz.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.impact(.1, .7); for (let i = 0; i < 6; i++) s.pop(.15 + i * .06, 900 + i * 150, .12);
+  s.whoosh(1.0, .6, .3); s.shutter(1.9);
+  for (let x = 2.76; x < 3.3; x += .04) s.tick(x, 2000 + (x - 2.76) * 1600, .06);
+  s.impact(3.0, .55); s.pop(3.88, 700, .25);
+  s.whoosh(4.5, .4, .3);
+  ANS.forEach(([, , t0, tp], i) => { s.whoosh(t0, .3, .25, .4); s.pop(t0 + .05, 500 + i * 120, .25); s.pop(tp, 900 + i * 120, .2); });
+  s.whoosh(11.6, .3, .2);
+  [11.76, 12.68, 13.6].forEach((x, i) => { s.tone(x, .25, 'square', 880, 870, .12, .002); s.impact(x, .3 + i * .1); });
+  for (let x = 11.76; x < 14.26; x += .23) s.tick(x, 1500, .05);
+  s.riser(13.6, 14.96, .2);
+  s.buzz(14.96, .15); s.impact(14.96, .9); s.ding(15.05, .25); s.whoosh(15.4, .5, .3); s.impact(15.6, .6); s.pop(16.6, 700, .3);
+  s.whooshDown(17.4, .35, .3); s.stamp(17.62, .4);
+  s.whoosh(17.75, .3, .2); s.whoosh(18.25, .5, .25); s.cash(19.64, .3); s.impact(19.64, .5);
+  s.riser(20.6, 21.4, .18); s.impact(21.4, .8); s.whoosh(22.1, .5, .3); s.impact(22.36, .6);
+  s.whoosh(23.0, .3, .25); s.stamp(23.3, .5);
+  for (let x = 23.73; x < 24.1; x += .07) s.tick(x, 1800, .1);
+  s.pop(24.1, 800, .3); for (let i = 0; i < 9; i++) s.pop(24.3 + i * .12, 700 + i * 90, .15);
+  s.riser(25.3, 26.1, .18); s.impact(26.1, .8); s.whoosh(26.15, .5, .3); s.pop(26.44, 700, .3); s.impact(26.5, .5);
+  s.ringout(27.0);
+};
+init();
+</script>
+</body></html>
