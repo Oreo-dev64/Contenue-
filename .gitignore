@@ -1,3 +1,6 @@
 node_modules/
 video/*.mp4
 video/*.wav
+video/*.log
+video/*.pcm
+video/*_segs.txt
