@@ -4,3 +4,5 @@ video/*.wav
 video/*.log
 video/*.pcm
 video/*_segs.txt
+video/*.png
+!video/assets/*.png

@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3 erreurs — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 3 — « 3 ERREURS »   (voix : voix_erreurs.mp3, 29.3 s)
+   0.00  S1  Cascade de fenêtres d'erreur, « 3 ERREURS » glitch RGB      — glitch, pops
+   3.52  S2  « 3 » rouge 3D → ERREUR : acheter sans voir (colis mystère ?) — impact, buzz
+   6.56      FIX vert : photos QC avant l'envoi → « REMBOURSÉ »          — whoosh, shutter, stamp
+  11.12  S3  « 2 » rouge 3D → ERREUR : attendre des semaines (calendrier)  — impact, ticks
+  14.72      FIX vert : « 6–7 JOURS », barre de chargement 100 %          — whoosh, ding
+  16.40      Iris qui se ferme, point rouge qui bat (silence dramatique)  — heartbeat
+  17.56  S4  « 1 » rouge géant, alarme → payer des centaines d'€          — riser, impact, glitch
+  21.36      Flood vert : « LE MIEN » 14€ 3D                             — impact
+  23.24  S5  4 cartes qui se retournent : running / luxe / streetwear / sneakers — flips
+  26.92  S6  « NE FAIS PLUS CES ERREURS » : erreurs cochées → fin LIEN EN BIO — ticks, impact
+   ===================================================================== */
+const DUR = 30.5;
+const WORDS = WORDS_JSON("erreurs");
+const GROUPS = makeGroups(WORDS);
+const BG = [[0, C.ink], [6.74, C.lime], [11.1, C.ink], [14.94, C.lime], [16.9, C.ink], [21.44, C.lime], [23.24, C.cream], [26.92, C.ink], [28.62, C.lime]];
+const HITS = [[0.32, 14], [3.6, 22], [5.0, 10], [6.75, 12], [10.24, 18], [11.12, 22], [14.95, 12], [15.52, 16], [18.48, 30], [20.4, 16], [21.45, 22], [22.36, 22], [26.92, 14], [28.62, 16], [28.9, 16]];
+const SCENES = [[0, 'ALERTE'], [3.52, 'ERREUR N°3'], [6.56, 'LA SOLUTION'], [11.12, 'ERREUR N°2'], [14.72, 'LA SOLUTION'], [17.56, 'ERREUR N°1'], [21.36, 'LA SOLUTION'], [23.24, 'CATALOGUE'], [26.92, 'FOURNISSEUR 14 €']];
+
+// fenêtre d'erreur style système
+function DLG(parent, title, msg, w, msgSize = 54, ok = false) {
+  const e = E(parent, `width:${w}px;border-radius:22px;overflow:hidden;background:${C.cream};box-shadow:0 30px 60px rgba(0,0,0,.5)`, '', 'L');
+  const bar = E(e, `position:relative;height:58px;background:#1B1B24;display:flex;align-items:center;gap:10px;padding:0 20px`, `<span style="width:16px;height:16px;border-radius:50%;background:${C.red}"></span><span style="width:16px;height:16px;border-radius:50%;background:#FFB020"></span><span style="width:16px;height:16px;border-radius:50%;background:#3BD16F"></span><span class="tt" style="font:500 22px JM;letter-spacing:.16em;color:${C.cream};margin-left:14px">${title}</span>`);
+  const body = E(e, `position:relative;display:flex;align-items:center;gap:26px;padding:30px 34px 34px`,
+    `<div class="ic" style="flex:none;width:96px;height:96px;border-radius:50%;background:${C.red};display:flex;align-items:center;justify-content:center">${svg('0 0 40 40', `<path d="M12 12 L28 28 M28 12 L12 28" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`, 48, 48)}</div><div class="ms" style="font:${msgSize}px AB;color:${C.ink};line-height:1.02;letter-spacing:-.02em">${msg}</div>`);
+  e.ic = body.querySelector('.ic'); e.ms = body.querySelector('.ms'); e.tt = bar.querySelector('.tt');
+  e.setOk = k => { e.ic.style.background = k ? '#18A957' : C.red; e.ic.innerHTML = k ? svg('0 0 40 40', `<path d="M11 21 L18 28 L30 13" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, 48, 48) : svg('0 0 40 40', `<path d="M12 12 L28 28 M28 12 L12 28" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`, 48, 48); };
+  return e;
+}
+// texte glitch (séparation RGB)
+function GL(parent, text, css) {
+  const g = E(parent, '', '', 'L');
+  const r = Tx(g, text, css + `;color:${C.red};mix-blend-mode:screen`), b = Tx(g, text, css + `;color:#2FD8FF;mix-blend-mode:screen`), m = Tx(g, text, css + `;color:${C.cream}`);
+  [r, b, m].forEach(x => x.style.transform = 'translate(-50%,-50%)');
+  g.jit = (t, amt) => { const q = Math.floor(t * 24), h = rng(q)(), h2 = rng(q + 99)(); const a = amt * (h > .6 ? 1 : .25); r.style.transform = `translate(-50%,-50%) translate(${-a * 14}px,${(h2 - .5) * a * 8}px)`; b.style.transform = `translate(-50%,-50%) translate(${a * 14}px,${(h - .5) * a * 8}px)`; m.style.transform = `translate(-50%,-50%) translateX(${(h2 > .85 ? (h - .5) * 40 : 0) * amt}px)`; m.style.clipPath = h2 > .9 && amt > .3 ? `inset(${h * 60}% 0 ${(1 - h) * 20}% 0)` : ''; };
+  return g;
+}
+const BADGE = (parent, n) => E(parent, `width:130px;height:130px;border-radius:50%;background:${C.red};display:flex;align-items:center;justify-content:center;font:84px AB;color:#fff;letter-spacing:-.04em`, n, 'L');
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(23);
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, '', '', 'full');
+  const alarm = E(world, `background:radial-gradient(ellipse 70% 55% at 50% 50%, rgba(255,59,48,0) 40%, rgba(255,59,48,.45) 100%)`, '', 'full');
+
+  // ================= S1 : alerte =================
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const MSGS = ['Marge : 0 €', 'Article invendu', 'Colis en retard', 'Fournisseur : €€€', 'Photos : aucune', 'Stock bloqué', 'Prix trop élevé', 'Délai : 4 semaines', 'Vente annulée', 'Marge : 0 €', 'Article invendu', 'Colis en retard', 'Paiement : €€€', 'Erreur inconnue'];
+  const dl = MSGS.map((m, i) => ({ e: DLG(A, 'ERREUR', m, 460 + R() * 120, 40), x: 160 + R() * 760, y: 330 + R() * 1000, r: (R() - .5) * 16, t0: .02 + i * .085, a: R() * Math.PI * 2 }));
+  const plate = E(A, `width:1000px;height:300px;background:${C.ink};border-radius:30px;box-shadow:0 0 0 6px ${C.red}`, '', 'L');
+  const aTitle = GL(A, '3 ERREURS', `font:150px AB;letter-spacing:-.04em`);
+  const aSub1 = MW(A, "qui t'empêchent de", `font:italic 96px IS;color:${C.cream}`);
+  const aSub2 = MW(A, "gagner de l'argent", `font:italic 96px IS;color:${C.lime}`);
+  const aSub3 = Tx(A, 'AVEC LA REVENTE', `font:500 32px JM;letter-spacing:.3em;color:${C.cream}`);
+
+  // ================= blocs ERREUR (3, 2, 1) =================
+  function errorBlock(n, msg, msgSize) {
+    const S = E(world, 'perspective:1600px', '', 'full');
+    const num = EXT(S, n, 640, 24, 130, C.red, '#7a1510', '#2a0604', '#9a1a12');
+    const lab = Tx(S, `ERREUR N°${n}`, `font:500 40px JM;letter-spacing:.35em;color:${C.red}`);
+    const badge = BADGE(S, n);
+    const dlg = DLG(S, `ERREUR N°${n}`, msg, 900, msgSize);
+    return { S, num, lab, badge, dlg };
+  }
+  const e3 = errorBlock('3', 'ACHETER SANS<br>VOIR L\'ARTICLE', 66);
+  const myst = BOX(e3.S, 260, ['#C8955A', '#B07E46', '#C8955A', '#A57540', '#D9A86C', '#8E6234'], '?');
+  const qm = Tx(e3.S, '?', `font:200px AB;color:${C.red}`);
+  const e2 = errorBlock('2', 'ATTENDRE DES<br>SEMAINES', 66);
+  const cal = E(e2.S, `width:400px;height:430px;border-radius:30px;background:${C.cream};overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.4)`, `<div style="height:110px;background:${C.red};display:flex;align-items:center;justify-content:center;font:46px AB;color:#fff;letter-spacing:.04em">SEMAINE</div>`, 'L p3');
+  const calN = Tx(cal, '1', `font:250px AB;color:${C.ink};left:200px;top:270px;transform:translate(-50%,-50%);letter-spacing:-.05em`);
+  const load = E(e2.S, `width:820px;height:110px;border-radius:24px;background:#1B1B24;padding:22px 26px`, `<div style="display:flex;justify-content:space-between;font:500 24px JM;letter-spacing:.14em;color:${C.cream}"><span class="lt2">EN ATTENTE…</span><span class="pc">23 %</span></div><div style="margin-top:14px;height:16px;border-radius:8px;background:#33333f;overflow:hidden"><div class="fill" style="height:100%;width:23%;background:${C.red}"></div></div>`, 'L');
+  const loadFill = load.querySelector('.fill'), loadPc = load.querySelector('.pc'), loadLt = load.querySelector('.lt2');
+  const e1 = errorBlock('1', 'PAYER SON FOURNISSEUR<br>DES CENTAINES D\'€', 52);
+  const e1Kick = Tx(e1.S, "ET L'ERREUR", `font:500 40px JM;letter-spacing:.35em;color:${C.cream}`);
+  const e1Price = GL(e1.S, '300+ €', `font:220px AB;letter-spacing:-.05em`);
+
+  // ================= FIX (vert) =================
+  const wipe1 = E(world, `width:2400px;height:1920px;background:${C.lime};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+  const F1 = E(world, 'perspective:1500px', '', 'full');
+  const f1k = Tx(F1, '✓ LA SOLUTION', `font:500 34px JM;letter-spacing:.3em;color:${C.ink}`);
+  const f1t = MW(F1, "PHOTOS AVANT L'ENVOI", `font:76px AB;color:${C.ink};letter-spacing:-.02em`);
+  const pols = [['hood', '#E2E8FF', -12, 260, 820], ['run', '#FFFFFF', 2, 540, 760], ['sneak', '#FFE7D6', 13, 820, 830]].map(([ic, bc, r, x, y], i) => ({ e: E(F1, `width:300px;height:372px;background:#fff;padding:18px;border-radius:10px;box-shadow:0 30px 60px rgba(0,0,0,.25)`,
+    `<div style="position:relative;width:264px;height:270px;background:${bc};display:flex;align-items:center;justify-content:center">${icon(ic, '#1D1D25', '#fff', 200)}<div style="position:absolute;left:10px;top:10px;width:30px;height:30px;border-left:4px solid #1D1D25;border-top:4px solid #1D1D25"></div><div style="position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-right:4px solid #1D1D25;border-bottom:4px solid #1D1D25"></div></div><div style="display:flex;justify-content:space-between;margin-top:20px;font:500 22px JM;color:#333;letter-spacing:.1em"><span>PHOTO QC</span><span>${i + 1}/3</span></div>`, 'L'), r, x, y }));
+  const f1pas = E(F1, `display:flex;align-items:center;gap:18px;background:${C.ink};border-radius:50px;padding:18px 34px 18px 18px;width:max-content`, `<div style="width:64px;height:64px;border-radius:50%;background:${C.red};display:flex;align-items:center;justify-content:center">${svg('0 0 40 40', `<path d="M12 12 L28 28 M28 12 L12 28" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`, 34, 34)}</div><span style="font:52px AB;color:${C.cream}">PAS BON ?</span>`, 'L');
+  const f1rem = Tx(F1, 'REMBOURSÉ', `font:120px AB;color:${C.ink};border:12px solid ${C.ink};border-radius:24px;padding:12px 34px 4px;letter-spacing:-.03em`);
+  const flashR = E(stage, `background:${C.red}`, '', 'full');
+
+  const wipe2 = E(world, `width:2400px;height:1920px;background:${C.lime};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+  const F2 = E(world, 'perspective:1500px', '', 'full');
+  const speed = Array.from({ length: 26 }, () => ({ e: E(F2, `height:${3 + R() * 5}px;width:${160 + R() * 380}px;background:rgba(11,11,16,${.1 + R() * .2});border-radius:4px`, '', 'L'), y: 250 + R() * 1150, sp: 2600 + R() * 2400, o: R() * 2000 }));
+  const f2ici = MW(F2, 'ICI', `font:130px AB;color:${C.ink};letter-spacing:-.03em`);
+  const f2n6 = MW(F2, '6', `font:330px AB;color:${C.ink};letter-spacing:-.05em`);
+  const f2n7 = MW(F2, '–7', `font:330px AB;color:${C.ink};letter-spacing:-.05em`);
+  const f2j = MW(F2, 'JOURS', `font:140px AB;color:${C.ink};letter-spacing:-.02em`);
+  const f2box = BOX(F2, 180);
+  const f2load = E(F2, `width:820px;height:110px;border-radius:24px;background:${C.ink};padding:22px 26px`, `<div style="display:flex;justify-content:space-between;font:500 24px JM;letter-spacing:.14em;color:${C.lime}"><span class="lt3">EN ROUTE…</span><span class="pc">0 %</span></div><div style="margin-top:14px;height:16px;border-radius:8px;background:#33333f;overflow:hidden"><div class="fill" style="height:100%;width:0;background:${C.lime}"></div></div>`, 'L');
+  const f2fill = f2load.querySelector('.fill'), f2pc = f2load.querySelector('.pc'), f2lt = f2load.querySelector('.lt3');
+  const iris = E(world, `width:200px;height:200px;border-radius:50%;box-shadow:0 0 0 2400px ${C.ink}`, '', 'L');
+  const dot = E(world, `width:60px;height:60px;border-radius:50%;background:${C.red}`, '', 'L');
+
+  const flood3 = E(world, `width:100px;height:100px;border-radius:50%;background:${C.lime}`, '', 'L');
+  const F3 = E(world, 'perspective:1800px', '', 'full');
+  const f3mien = MW(F3, 'LE MIEN', `font:140px AB;color:${C.ink};letter-spacing:-.03em`);
+  const f3c = Tx(F3, 'IL COÛTE', `font:500 36px JM;letter-spacing:.3em;color:${C.ink}`);
+  const ext = EXT(F3, '14€', 400, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const extSh = E(F3, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)`, '', 'L');
+  const conf = Array.from({ length: 28 }, (_, i) => ({ e: E(F3, `width:${18 + R() * 20}px;height:${8 + R() * 10}px;background:${[C.ink, C.blue, C.cream, C.ink][i % 4]};border-radius:3px`, '', 'L'), a: R() * Math.PI * 2, d: 380 + R() * 420, r: R() * 720 }));
+  const shT = E(world, `width:1080px;height:980px;background:${C.cream}`, '', 'L');
+  const shB = E(world, `width:1080px;height:980px;background:${C.cream}`, '', 'L');
+
+  // ================= S5 : cartes =================
+  const G = E(world, 'perspective:1600px', '', 'full');
+  const gT = MW(G, 'IL A TOUT', `font:130px AB;color:${C.ink};letter-spacing:-.03em`);
+  const CARDS = [['run', 'RUNNING', 24.4, 290, 720, C.ink, C.lime], ['bag', 'LUXE', 24.84, 790, 720, C.blue, '#fff'], ['hood', 'STREETWEAR', 25.44, 290, 1170, C.lime, C.ink], ['sneak', 'SNEAKERS', 26.04, 790, 1170, C.red, '#fff']];
+  const cards = CARDS.map(([ic, l, t0, x, y, bc, fc]) => {
+    const c = E(G, 'width:430px;height:420px', '', 'L p3');
+    E(c, `position:absolute;inset:0;border-radius:36px;background:${C.ink};backface-visibility:hidden;display:flex;align-items:center;justify-content:center;font:200px AB;color:rgba(237,235,228,.15)`, '?');
+    E(c, `position:absolute;inset:0;border-radius:36px;background:${bc};backface-visibility:hidden;transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px`, `${icon(ic, fc, bc === C.lime ? C.cream : C.ink, 230)}<div style="font:46px AB;color:${fc};white-space:nowrap">${l}</div>`);
+    return { c, t0, x, y };
+  });
+
+  // ================= S6 : fin =================
+  const Hh = E(world, '', '', 'full');
+  const hNe = MW(Hh, 'NE FAIS PLUS', `font:116px AB;color:${C.cream};letter-spacing:-.03em`);
+  const hCes = MW(Hh, 'CES ERREURS', `font:116px AB;color:${C.red};letter-spacing:-.03em`);
+  const recap = [['N°3', 'ACHETER SANS VOIR'], ['N°2', 'ATTENDRE DES SEMAINES'], ['N°1', 'PAYER DES CENTAINES D\'€']].map(([n, m]) => DLG(Hh, `ERREUR ${n}`, m, 860, 44));
+  const flood4 = E(world, `width:100px;height:100px;border-radius:50%;background:${C.lime}`, '', 'L');
+  const J = E(world, 'perspective:1800px', '', 'full');
+  const jLe = MW(J, 'LE FOURNISSEUR', `font:84px AB;color:${C.ink};letter-spacing:-.02em`);
+  const ext2 = EXT(J, '14€', 400, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const ext2Sh = E(J, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)`, '', 'L');
+  const jCats = Tx(J, '', `font:500 30px JM;color:${C.ink};letter-spacing:.12em`);
+  const jRule = E(J, `height:3px;background:${C.ink}`, '', 'L');
+  const jPill = E(J, `display:flex;align-items:center;gap:22px;background:${C.ink};border-radius:70px;padding:26px 50px 26px 40px;white-space:nowrap;width:max-content`, `<svg viewBox="0 0 40 40" width="48" height="48"><path d="M20 34 V8 M8 19 L20 7 L32 19" stroke="${C.lime}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:62px AB;color:${C.lime};letter-spacing:-.01em">LIEN EN BIO</span>`, 'L');
+  const jArr = jPill.querySelector('svg');
+
+  const overlays = Overlays(stage, { scenes: SCENES });
+  const caps = Captions(stage, GROUPS, { hideAfter: 28.45 });
+
+  // bloc erreur générique : grand chiffre → badge + fenêtre
+  function runError(b, t, tn, td, tEnd, numY = 820) {
+    on(b.S, win(t, tn - .05, tEnd));
+    if (!win(t, tn - .05, tEnd)) return;
+    const k = spring(t - tn, 8, .62), mv = ease(seg(t, td - .1, td + .25));
+    const nx = lerp(540, 150, mv), ny = lerp(numY, 330, mv), ns = lerp(1, .0, mv);
+    on(b.num, mv < 1);
+    b.num.style.transform = `translate(${nx}px,${ny}px) rotateX(${10 + Math.sin(t * 1.4) * 5}deg) rotateY(${lerp(-540, -18, k) + Math.sin(t * 1.7) * 10}deg) scale(${lerp(.1, 1, k) * (1 - mv) + .001})`;
+    on(b.lab, mv < 1); b.lab.style.transform = P(540, 1220); b.lab.style.opacity = seg(t, tn + .15, tn + .35) * (1 - mv);
+    const bk = spring(t - td - .1, 16, .55);
+    on(b.badge, t > td); b.badge.style.transform = P(150, 330) + ` scale(${bk}) rotate(${(1 - bk) * -90}deg)`;
+    const dk = spring(t - td, 13, .62);
+    on(b.dlg, t > td - .02);
+    b.dlg.style.transform = P(lerp(1400, 560, dk), 600) + ` rotate(${lerp(12, -2, dk)}deg)`;
+  }
+
+  window.seek = function (T) {
+    const t = clamp(T, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    on(alarm, win(t, 17.5, 21.4) || win(t, 0, 3.5));
+    alarm.style.opacity = (t < 3.5 ? .5 : 1) * (.55 + .45 * Math.sin(t * 9)) * (t < 3.5 ? 1 - seg(t, 3.2, 3.5) : seg(t, 17.5, 17.8) * (1 - seg(t, 21.2, 21.4)));
+
+    // ---------- S1 ----------
+    on(A, t < 3.6);
+    if (t < 3.6) {
+      const out = easeIn(seg(t, 3.25, 3.55));
+      dl.forEach(d => {
+        const k = spring(t - d.t0, 18, .55);
+        on(d.e, t > d.t0);
+        d.e.style.transform = P(d.x + Math.cos(d.a) * out * 900, d.y + Math.sin(d.a) * out * 900) + ` rotate(${d.r + out * 40}deg) scale(${k * (1 + out)})`;
+        d.e.style.opacity = .35 + .65 * (t < 1.4 ? 1 : 1 - seg(t, 1.4, 1.7) * .7);
+      });
+      const tk = spring(t - .3, 16, .55);
+      on(plate, t > .28); plate.style.transform = P(540, 820) + ` scale(${tk * (1 - out)},${tk * (1 - out)})`;
+      on(aTitle, t > .3); aTitle.style.transform = `translate(540px,820px) scale(${lerp(1.8, 1, tk) * (1 - out)})`;
+      aTitle.jit(t, t < .6 ? 1 : (Math.floor(t * 6) % 5 === 0 ? .8 : .15));
+      on(aSub1, t > .9 && out < 1); aSub1.style.transform = P(540, 1060); aSub1.reveal(t, .96, .025);
+      on(aSub2, t > 1.5 && out < 1); aSub2.style.transform = P(540, 1170); aSub2.reveal(t, 1.6, .025);
+      on(aSub3, t > 2.7 && out < 1); aSub3.style.transform = P(540, 560); aSub3.style.opacity = seg(t, 2.72, 2.9);
+      aSub1.style.opacity = aSub2.style.opacity = aSub3.style.opacity = 1 - out;
+    }
+
+    // ---------- ERREUR 3 ----------
+    runError(e3, t, 3.52, 4.88, 6.8);
+    on(myst, win(t, 5.3, 6.8)); on(qm, win(t, 5.5, 6.8));
+    if (win(t, 4.7, 6.8)) {
+      const mk = spring(t - 5.44, 12, .6), jig = Math.sin(t * 30) * 6 * seg(t, 5.5, 6.4);
+      myst.style.transform = `translate(${540 + jig}px,1080px) rotateX(-22deg) rotateY(${35 + (t - 5.4) * 40}deg) scale(${mk})`;
+      const qk = spring(t - 5.6, 16, .5);
+      qm.style.transform = P(780, 900) + ` rotate(${14 + Math.sin(t * 5) * 8}deg) scale(${qk})`;
+    }
+    on(wipe1, win(t, 6.45, 6.8));
+    if (win(t, 6.45, 6.8)) wipe1.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, 6.5, 6.75)))}px,0)`;
+    on(F1, win(t, 6.7, 11.12));
+    if (win(t, 6.7, 11.12)) {
+      f1k.style.transform = P(540, 280); f1k.style.opacity = seg(t, 6.75, 6.95);
+      f1t.style.transform = P(540, 380); f1t.reveal(t, 7.6, .02);
+      pols.forEach((p, i) => {
+        const t0 = 8.16 + i * .1, k = spring(t - t0, 11, .62);
+        on(p.e, t > t0);
+        p.e.style.transform = P(lerp(540, p.x, k), lerp(1500, p.y, k)) + ` rotate(${p.r * k + Math.sin(t * 1.5 + i) * 2}deg) scale(${lerp(.4, 1, k)}) perspective(900px) rotateY(${(1 - k) * 80}deg)`;
+      });
+      const pk = spring(t - 9.49, 16, .6), rk = spring(t - 10.24, 16, .48);
+      on(f1pas, t > 9.45 && t < 10.3); f1pas.style.transform = P(540, 1170) + ` scale(${pk})`;
+      on(f1rem, t > 10.2); f1rem.style.transform = P(540, 1170) + ` rotate(-6deg) scale(${lerp(2.6, 1, rk)})`; f1rem.style.opacity = clamp(rk * 2);
+    }
+    const fr = Math.max(win(t, 11.1, 11.3) ? .55 * (1 - seg(t, 11.1, 11.3)) : 0, win(t, 18.48, 18.7) ? .6 * (1 - seg(t, 18.48, 18.7)) : 0, win(t, 3.52, 3.7) ? .45 * (1 - seg(t, 3.52, 3.7)) : 0);
+    on(flashR, fr > 0); flashR.style.opacity = fr;
+
+    // ---------- ERREUR 2 ----------
+    runError(e2, t, 11.12, 12.61, 14.95);
+    on(cal, win(t, 12.6, 14.95)); on(load, win(t, 13.0, 14.95));
+    if (win(t, 12.4, 14.95)) {
+      const ck = spring(t - 12.7, 11, .65);
+      const wk = Math.min(6, 1 + Math.floor(Math.max(0, t - 12.9) / .28)), ph = ((t - 12.9) / .28) % 1;
+      calN.textContent = String(wk);
+      cal.style.transform = `translate(300px,1100px) translate(-50%,-50%) rotateY(${lerp(-90, 12, ck)}deg) rotateZ(-4deg)`;
+      calN.style.transform = `translate(-50%,-50%) rotateX(${t > 12.9 && wk < 6 ? (1 - easeOut(clamp(ph * 3))) * -90 : 0}deg)`;
+      const lk = spring(t - 13.04, 12, .7);
+      load.style.transform = P(lerp(1500, 680, lk), 1100) + ` scale(.62)`;
+      const spin = '|/-\\'[Math.floor(t * 12) % 4];
+      loadLt.textContent = `EN ATTENTE ${spin}`;
+    }
+    on(wipe2, win(t, 14.65, 15.0));
+    if (win(t, 14.65, 15.0)) wipe2.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, 14.7, 14.94)))}px,0)`;
+    on(F2, win(t, 14.9, 16.95));
+    if (win(t, 14.9, 16.95)) {
+      speed.forEach(s => { s.e.style.transform = `translate(${1300 - ((t * s.sp + s.o) % 2600)}px,${s.y}px)`; });
+      f2ici.style.transform = P(540, 330); f2ici.reveal(t, 14.72, .03);
+      f2n6.style.transform = P(400, 740); f2n6.reveal(t, 15.52);
+      f2n7.style.transform = P(650, 740); f2n7.reveal(t, 15.84, .05);
+      f2j.style.transform = P(540, 950); f2j.reveal(t, 16.0, .03);
+      const bk = spring(t - 15.0, 9, .7);
+      f2box.style.transform = `translate(${lerp(-300, 880, bk)}px,${450 + Math.sin(t * 5) * 8}px) rotateX(-24deg) rotateY(${-35 + (1 - bk) * -500}deg)`;
+      const lk = spring(t - 15.1, 12, .7), p = easeOut(seg(t, 15.4, 16.2));
+      f2load.style.transform = P(540, 1170) + ` scale(${lk})`;
+      f2fill.style.width = `${p * 100}%`; f2pc.textContent = `${Math.round(p * 100)} %`; f2lt.textContent = p >= 1 ? 'LIVRÉ ✓' : 'EN ROUTE…';
+    }
+    // iris + cœur qui bat
+    on(iris, win(t, 16.3, 16.95));
+    if (win(t, 16.3, 16.95)) { const k = easeIn(seg(t, 16.36, 16.9)); iris.style.width = iris.style.height = `${lerp(2400, 0, k)}px`; iris.style.transform = P(540, 960); }
+    on(dot, win(t, 16.85, 17.75));
+    if (win(t, 16.85, 17.75)) { const hb = (tt => Math.exp(-((tt % .55) * 14)) + .6 * Math.exp(-(((tt - .16) % .55 + .55) % .55) * 14))(t - 16.9); dot.style.transform = P(540, 960) + ` scale(${(1 + hb * .8) * (1 + 40 * easeIn(seg(t, 17.5, 17.75)) * 0)})`; dot.style.opacity = 1 - seg(t, 17.5, 17.7); }
+
+    // ---------- ERREUR 1 ----------
+    on(e1Kick, win(t, 17.5, 19.2));
+    e1Kick.style.transform = P(540, 420); e1Kick.style.opacity = seg(t, 17.56, 17.8) * (1 - seg(t, 18.9, 19.15));
+    runError(e1, t, 18.3, 19.16, 21.5, 900);
+    on(e1Price, win(t, 20.3, 21.5));
+    if (win(t, 19.9, 21.5)) {
+      const pk = spring(t - 20.4, 14, .5);
+      e1Price.style.transform = `translate(540px,1110px) scale(${lerp(2, 1, pk)})`;
+      e1Price.jit(t, t < 20.6 ? 1 : .35);
+    }
+    on(flood3, win(t, 21.1, 21.5));
+    if (win(t, 21.1, 21.5)) flood3.style.transform = P(540, 1110) + ` scale(${25 * easeIn(seg(t, 21.15, 21.44))})`;
+    on(F3, win(t, 21.4, 23.3));
+    if (win(t, 21.4, 23.3)) {
+      f3mien.style.transform = P(540, 330); f3mien.reveal(t, 21.4, .04);
+      on(f3c, t > 21.95); f3c.style.transform = P(540, 470); f3c.style.opacity = seg(t, 22.0, 22.15);
+      const k = spring(t - 22.0, 9, .62), sway = Math.sin((t - 22.36) * 1.7) * 16 * seg(t, 22.36, 22.8);
+      ext.style.transform = `translate(540px,880px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+      extSh.style.transform = P(540, 1130) + ` scale(${k})`;
+      conf.forEach(c => { const d = t - 22.36; on(c.e, d > 0 && d < .9); if (d > 0) { const kk = easeOut(seg(d, 0, .8)); c.e.style.transform = `translate(${540 + Math.cos(c.a) * c.d * kk}px,${880 + Math.sin(c.a) * c.d * kk + 300 * d * d}px) rotate(${c.r * d}deg)`; c.e.style.opacity = 1 - seg(d, .5, .9); } });
+    }
+    on(shT, win(t, 22.95, 23.3)); on(shB, win(t, 22.95, 23.3));
+    if (win(t, 22.95, 23.3)) { const k = easeIn(seg(t, 23.0, 23.24)); shT.style.transform = `translate(0,${lerp(-980, 0, k)}px)`; shB.style.transform = `translate(0,${lerp(1920, 940, k)}px)`; }
+
+    // ---------- S5 ----------
+    on(G, win(t, 23.2, 26.92));
+    if (win(t, 23.2, 26.92)) {
+      gT.style.transform = P(540, 330); gT.reveal(t, 23.3, .035);
+      cards.forEach((c, i) => {
+        const ek = spring(t - 23.4 - i * .08, 12, .7), fk = spring(t - c.t0, 13, .62);
+        c.c.style.transform = `translate(${c.x}px,${c.y + (1 - ek) * 1200}px) translate(-50%,-50%) rotateY(${180 * fk + Math.sin(t * 1.3 + i) * 5}deg) rotateX(${Math.sin(t + i) * 4}deg) scale(${1 + .1 * Math.sin(Math.PI * clamp((t - c.t0) / .4))})`;
+      });
+    }
+
+    // ---------- S6 ----------
+    on(Hh, win(t, 26.92, 28.65));
+    if (win(t, 26.92, 28.65)) {
+      hNe.style.transform = P(540, 330); hNe.reveal(t, 26.92, .03);
+      hCes.style.transform = P(540, 460); hCes.reveal(t, 27.6, .03);
+      recap.forEach((d, i) => {
+        const k = spring(t - 27.0 - i * .1, 14, .65), okT = 27.76 + i * .14;
+        d.setOk(t >= okT);
+        d.style.transform = P(lerp(-700, 540, k), 720 + i * 210) + ` rotate(${(i - 1) * 1.5}deg) scale(${t >= okT ? 1 + .06 * (1 - spring(t - okT, 20, .5)) : 1})`;
+        d.ms.style.textDecoration = t >= okT ? 'line-through' : 'none';
+        d.ms.style.textDecorationColor = C.red; d.ms.style.textDecorationThickness = '6px';
+        d.tt.textContent = t >= okT ? 'RÉGLÉ' : `ERREUR N°${3 - i}`;
+      });
+    }
+    on(flood4, win(t, 28.3, 28.66));
+    if (win(t, 28.3, 28.66)) flood4.style.transform = P(540, 960) + ` scale(${25 * easeIn(seg(t, 28.34, 28.62))})`;
+    on(J, t >= 28.55);
+    if (t >= 28.55) {
+      jLe.style.transform = P(540, 330); jLe.reveal(t, 28.6, .025);
+      const k = spring(t - 28.6, 9, .62), sway = Math.sin((t - 29) * 1.7) * 16 * seg(t, 29, 29.5);
+      ext2.style.transform = `translate(540px,760px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+      ext2Sh.style.transform = P(540, 1010) + ` scale(${k})`;
+      const cats = 'LUXE · RUNNING · STREETWEAR · SNEAKERS';
+      jCats.textContent = cats.slice(0, Math.floor(seg(t, 29.1, 29.9) * cats.length)); jCats.style.transform = P(540, 1105);
+      jRule.style.width = `${760 * easeOut(seg(t, 29.2, 29.8))}px`; jRule.style.transform = P(540, 1170);
+      on(jPill, t > 28.85); jPill.style.transform = P(540, 1300) + ` scale(${spring(t - 28.92, 14, .55)})`;
+      jArr.style.transform = `translateY(${Math.sin(t * 9) * 6}px)`;
+    }
+    overlays(t, bgc);
+    caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_erreurs.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  for (let i = 0; i < 14; i++) s.pop(.02 + i * .085, 500 + (i % 5) * 120, .12);
+  s.glitch(.3, .2); s.impact(.32, .6); s.glitch(1.0, .1); s.glitch(2.1, .1);
+  s.whoosh(3.4, .4, .3); s.impact(3.6, .9); s.buzz(3.62, .14); s.whoosh(4.9, .35, .25, .4); s.pop(5.44, 300, .3);
+  for (let x = 5.5; x < 6.4; x += .09) s.tick(x, 400, .08);
+  s.whoosh(6.7, .35, .3, -.5); s.ding(6.8, .12);
+  [8.16, 8.26, 8.36].forEach((x, i) => s.pop(x, 800 + i * 140, .22)); s.shutter(8.6);
+  s.buzz(9.5, .12); s.stamp(10.24, .9); s.ding(10.4, .14);
+  s.glitch(11.05, .2); s.impact(11.12, .9); s.whoosh(12.6, .35, .25, .4);
+  for (let x = 12.9; x < 14.6; x += .28) s.tick(x, 1100, .14);
+  s.whoosh(14.9, .35, .3, -.5); s.whoosh(15.1, .6, .25);
+  s.impact(15.52, .6); s.pop(15.84, 600, .3); s.pop(16.0, 800, .25);
+  for (let x = 15.4; x < 16.2; x += .05) s.tick(x, 1600 + (x - 15.4) * 1500, .04);
+  s.ding(16.2, .18); s.whooshDown(16.4, .5, .25);
+  [16.9, 17.45].forEach(x => { s.tone(x, .18, 'sine', 70, 40, .8); s.tone(x + .16, .16, 'sine', 65, 38, .5); });
+  s.riser(17.6, 18.48, .25); s.impact(18.48, 1.0); s.buzz(18.5, .12);
+  s.whoosh(19.2, .35, .25, .4); s.glitch(20.4, .2); s.impact(20.4, .5);
+  s.riser(20.8, 21.44, .2); s.impact(21.45, .9); s.whoosh(22.1, .5, .3); s.impact(22.36, .8);
+  s.whoosh(23.0, .3, .25); s.stamp(23.24, .5);
+  [24.4, 24.84, 25.44, 26.04].forEach((x, i) => { s.whoosh(x, .25, .2, i % 2 ? .4 : -.4); s.pop(x + .08, 600 + i * 140, .25); });
+  s.stamp(26.92, .6); [27.76, 27.9, 28.04].forEach((x, i) => { s.tick(x, 2000, .12); s.pop(x, 900 + i * 150, .2); });
+  s.riser(27.9, 28.62, .18); s.impact(28.62, .85); s.whoosh(28.7, .5, .3); s.impact(29.0, .6); s.pop(28.92, 700, .3);
+  s.ringout(29.3);
+};
+init();
+</script>
+</body></html>
