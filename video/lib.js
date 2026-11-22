@@ -108,7 +108,7 @@ function makeGroups(words, map = NUMFR, maxW = 3, maxC = 15) {
   push();
   return gs.map(g => ({ words: g, s: g[0].s - 0.04, e: 0 })).map((g, i, a) => (g.e = i + 1 < a.length ? Math.min(a[i + 1].s, g.words[g.words.length - 1].e + 0.6) : g.words[g.words.length - 1].e + 0.5, g));
 }
-function Captions(stage, groups, { y = 1440, hideAfter = 1e9, hideWin = [] } = {}) {
+function Captions(stage, groups, { y = 1440, hideAfter = 1e9, hideWin = [], hl = C.lime } = {}) {
   const cap = E(stage, `left:540px;top:${y}px;font:76px AB;letter-spacing:-.01em;text-align:center;white-space:nowrap;paint-order:stroke fill;-webkit-text-stroke:16px ${C.ink};line-height:1`, '', 'L');
   let idx = -2, spans = [], fit = 1;
   return t => {
@@ -125,7 +125,7 @@ function Captions(stage, groups, { y = 1440, hideAfter = 1e9, hideWin = [] } = {
     cap.style.transform = `translate(-50%,-50%) scale(${fit * lerp(.75, 1, k)}) rotate(${(1 - k) * -3}deg)`;
     g.words.forEach((w, i) => {
       const act = t >= w.s - .03, cur = act && (i === g.words.length - 1 || t < g.words[i + 1].s - .03);
-      spans[i].style.color = cur ? C.lime : '#fff';
+      spans[i].style.color = cur ? hl : '#fff';
       spans[i].style.opacity = act ? 1 : .55;
       spans[i].style.transform = `scale(${cur ? 1.04 + .08 * (1 - spring(t - w.s, 25, .6)) : 1})`;
     });
@@ -133,11 +133,11 @@ function Captions(stage, groups, { y = 1440, hideAfter = 1e9, hideWin = [] } = {
 }
 
 // ---------- habillage : vignette, grain, HUD ----------
-function Overlays(stage, { label = 'FOURNISSEUR — 14 €', scenes = [[0, '']] } = {}) {
+function Overlays(stage, { label = 'FOURNISSEUR — 14 €', scenes = [[0, '']], hud: showHud = true } = {}) {
   E(stage, `background:radial-gradient(ellipse 75% 60% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.32) 100%)`, '', 'full');
   const grains = [0, 1, 2, 3].map(k => { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const g = cv.getContext('2d'), id = g.createImageData(256, 256), r = rng(100 + k); for (let i = 0; i < id.data.length; i += 4) { const v = r() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } g.putImageData(id, 0, 0); return cv.toDataURL(); });
   const grain = E(stage, `opacity:.055;background-size:256px 256px`, '', 'full');
-  const hud = E(stage, '', '', 'full');
+  const hud = E(stage, showHud ? '' : 'display:none', '', 'full');
   const hc = [[46, 210, 'border-left:3px solid;border-top:3px solid'], [W - 102, 210, 'border-right:3px solid;border-top:3px solid'], [46, 1640, 'border-left:3px solid;border-bottom:3px solid'], [W - 102, 1640, 'border-right:3px solid;border-bottom:3px solid']].map(([x, y, b]) => E(hud, `left:${x}px;top:${y}px;width:56px;height:56px;${b}`, '', 'L'));
   Tx(hud, label, `font:500 20px JM;letter-spacing:.18em;left:72px;top:236px`);
   const tr = Tx(hud, '', `font:500 20px JM;letter-spacing:.18em;top:236px`);

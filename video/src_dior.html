@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Divisé par dix — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#09090B}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 5 — « DIVISÉ PAR DIX » (Dior B22, ambiance luxe noir & or)   voix : voix_dior.mp3, 20.2 s
+   0.00  S1  Ligne d'or, « Dior B22 » en serif avec reflet, vraie photo de l'annonce encadrée d'or,
+             étiquette « NEUF » qui se balance                        — shimmer, swoosh
+   3.00  S2  Photo à gauche, « 700 € » en or + extrait réel de l'annonce  — whoosh, ticks
+   5.16  S3  « 700 » géant → une lame d'or tranche le dernier 0 → « 70 € »  — riser, blade, impact
+   8.52  S4  « DIVISÉ PAR 10 » : 10 barres, 9 tombent, 1 reste en or       — ticks, ding
+  10.70  S5  Menu luxe : Le luxe / les sneakers / le running → cadre d'or « tout est dans le fournisseur »
+  14.20  S6  « 14 € » en or extrudé 3D                                  — impact
+  15.80  S7  Photos QC avant l'envoi → sceau « REMBOURSÉ »              — shutter, stamp
+  19.20  S8  Fin noir & or : LIEN EN BIO                               — ring-out
+   ===================================================================== */
+const DUR = 22;
+const IMG = "assets/vinted_b22.png", IW = 1170, IH = 2532;
+const G = '#D9BF8C', G2 = '#9C7F4C', CR = '#F1EADF', BK = '#09090B';
+const WORDS = WORDS_JSON("dior");
+const GROUPS = makeGroups(WORDS);
+const HITS = [[6.32, 16], [10.12, 10], [14.96, 16], [18.56, 14], [19.4, 10]];
+const SCENES = [[0, 'DIOR B22'], [3.0, 'VINTED'], [5.16, 'FOURNISSEUR'], [8.52, '÷ 10'], [10.7, 'CATALOGUE'], [14.2, '14 €'], [15.8, 'GARANTIE'], [19.2, 'LIEN EN BIO']];
+
+function crop(parent, ox, oy, ow, oh, w, css = '') {
+  const s = w / ow;
+  return E(parent, `width:${w}px;height:${oh * s}px;background-image:url(${IMG});background-size:${IW * s}px ${IH * s}px;background-position:${-ox * s}px ${-oy * s}px;${css}`, '', 'L');
+}
+// texte avec reflet doré qui passe
+function SH(parent, text, css, base = G) {
+  const e = Tx(parent, text, css + `;color:transparent;-webkit-background-clip:text;background-clip:text;background-image:linear-gradient(100deg,${base} 0%,${base} 42%,#FFF6E0 50%,${base} 58%,${base} 100%);background-size:300% 100%;padding:0 .1em`);
+  e.sweep = (t, t0, d = 1.2) => e.style.backgroundPosition = `${lerp(100, 0, seg(t, t0, t0 + d))}% 0`;
+  return e;
+}
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(77);
+  const bg = E(stage, `background:radial-gradient(ellipse 80% 60% at 50% 40%, #17150F 0%, ${BK} 70%)`, '', 'full');
+  const dust = Array.from({ length: 70 }, () => ({ e: E(stage, `width:${2 + R() * 4}px;height:${2 + R() * 4}px;border-radius:50%;background:${G}`, '', 'L'), x: R() * 1080, y: R() * 1920, sp: 15 + R() * 40, ph: R() * 6, tw: 1 + R() * 3 }));
+  const world = E(stage, '', '', 'full');
+  const gl = E(world, `height:2px;background:linear-gradient(90deg,transparent,${G},transparent)`, '', 'L');
+
+  // ================= S1/S2 =================
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const aT = SH(A, 'Dior B22', `font:italic 210px IS;letter-spacing:.01em`, CR);
+  const aK = Tx(A, '', `font:500 28px JM;letter-spacing:.42em;color:${G}`);
+  const frame = E(A, `width:520px;height:874px;padding:14px;border:2px solid ${G};background:#111`, '', 'L');
+  const fIn = E(frame, `position:relative;width:490px;height:844px;overflow:hidden`);
+  const photo = crop(fIn, 35, 538, 550, 924, 490);
+  const fSheen = E(fIn, `position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,246,224,.28) 48%,transparent 60%)`);
+  const tagS = E(A, `width:3px;height:120px;background:${G};transform-origin:50% 0`, '', 'L');
+  const tag = E(A, `width:150px;height:210px;background:${CR};clip-path:polygon(28% 0,72% 0,100% 15%,100% 100%,0 100%,0 15%);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform-origin:50% -120px`, `<div style="width:20px;height:20px;border-radius:50%;background:${BK};margin-bottom:10px"></div><div style="font:500 18px JM;letter-spacing:.25em;color:#555">ÉTAT</div><div style="font:italic 52px IS;color:${BK}">Neuf</div>`, 'L');
+  const aSur = Tx(A, 'SUR VINTED', `font:500 30px JM;letter-spacing:.42em;color:${G}`);
+  const aPrice = SH(A, '700 €', `font:italic 230px IS;letter-spacing:-.02em`, G);
+  const proof = crop(A, 51, 1684, 1063, 316, 560, `border:2px solid ${G2};border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.6)`);
+
+  // ================= S3 : la lame =================
+  const B = E(world, '', '', 'full');
+  const bQ = Tx(B, 'AVEC MON FOURNISSEUR ?', `font:500 34px JM;letter-spacing:.32em;color:${CR}`);
+  const row = E(B, 'white-space:nowrap;font:italic 400px IS;line-height:1;color:' + G, '', 'L');
+  const d7 = E(row, 'display:inline-block', '7', ''), d0 = E(row, 'display:inline-block', '0', '');
+  const halves = E(row, 'display:inline-block;position:relative', '');
+  const hTop = E(halves, `color:${G};clip-path:inset(0 0 52% 0)`, '0'), hBot = E(halves, `position:absolute;left:0;top:0;color:${G};clip-path:inset(48% 0 0 0)`, '0');
+  const euro = E(B, `font:italic 260px IS;color:${G};line-height:1`, '€', 'L');
+  const blade = E(B, `height:6px;background:linear-gradient(90deg,transparent,#FFF6E0,${G},transparent);box-shadow:0 0 24px ${G};transform-origin:0 50%`, '', 'L');
+  const sparks = Array.from({ length: 26 }, () => ({ e: E(B, `width:${3 + R() * 5}px;height:${3 + R() * 5}px;border-radius:50%;background:#FFF0C8`, '', 'L'), a: (R() - .5) * 2.4 - .6, d: 200 + R() * 400 }));
+  const bLiv = Tx(B, 'LIVRAISON COMPRISE', `font:500 34px JM;letter-spacing:.38em;color:${CR}`);
+  const bRule = E(B, `height:2px;background:${G}`, '', 'L');
+
+  // ================= S4 : ÷10 =================
+  const Cc = E(world, '', '', 'full');
+  const cK = Tx(Cc, 'LE PRIX', `font:500 34px JM;letter-spacing:.42em;color:${CR}`);
+  const cDiv = SH(Cc, 'divisé par 10', `font:italic 150px IS`, G);
+  const bars = Array.from({ length: 10 }, (_, i) => E(Cc, `width:58px;height:420px;border-radius:8px;background:${i === 9 ? G : CR}`, '', 'L'));
+
+  // ================= S5 : menu luxe =================
+  const D = E(world, '', '', 'full');
+  const MENU = [['Le luxe', 10.8], ['les sneakers', 11.44], ['le running', 12.4]];
+  const menu = MENU.map(([w]) => SH(D, w, `font:italic 160px IS`, CR));
+  const dNum = MENU.map((_, i) => Tx(D, `0${i + 1}`, `font:500 26px JM;letter-spacing:.3em;color:${G}`));
+  const box = ['top', 'right', 'bottom', 'left'].map(() => E(D, `background:${G}`, '', 'L'));
+  const dTout = Tx(D, 'TOUT EST DANS', `font:500 34px JM;letter-spacing:.38em;color:${G}`);
+  const dFour = SH(D, 'le fournisseur', `font:italic 150px IS`, CR);
+
+  // ================= S6 : 14 € or =================
+  const F = E(world, 'perspective:1800px', '', 'full');
+  const fK = Tx(F, 'IL NE COÛTE QUE', `font:500 34px JM;letter-spacing:.38em;color:${CR}`);
+  const ext = EXT(F, '14€', 400, 28, 120, '#F3DFB4', '#8A6D3B', '#2A1F0C', '#B8975C');
+  const extSh = E(F, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(217,191,140,.25),transparent)`, '', 'L');
+
+  // ================= S7 : garanties =================
+  const Q = E(world, 'perspective:1500px', '', 'full');
+  const qK = Tx(Q, 'PHOTOS AVANT L\'ENVOI', `font:500 32px JM;letter-spacing:.34em;color:${G}`);
+  const qc = [['sneak', -11, 290, 820], ['sneak', 2, 540, 760], ['sneak', 12, 790, 830]].map(([ic, r, x, y], i) => ({ e: E(Q, `width:290px;height:360px;background:${CR};padding:16px;border-radius:8px;box-shadow:0 30px 60px rgba(0,0,0,.6)`,
+    `<div style="position:relative;width:258px;height:262px;background:#17150F;display:flex;align-items:center;justify-content:center">${icon(ic, CR, '#17150F', 200)}<div style="position:absolute;left:10px;top:10px;width:28px;height:28px;border-left:3px solid ${G};border-top:3px solid ${G}"></div><div style="position:absolute;right:10px;bottom:10px;width:28px;height:28px;border-right:3px solid ${G};border-bottom:3px solid ${G}"></div></div><div style="display:flex;justify-content:space-between;margin-top:20px;font:500 20px JM;color:#444;letter-spacing:.14em"><span>PHOTO QC</span><span>${i + 1}/3</span></div>`, 'L'), r, x, y }));
+  const seal = E(Q, 'width:330px;height:330px', svg('0 0 460 460', `
+    <defs><path id="rg5" d="M230 230 m-178 0 a178 178 0 1 1 356 0 a178 178 0 1 1 -356 0"/></defs>
+    <circle cx="230" cy="230" r="226" fill="${BK}" stroke="${G}" stroke-width="6"/><circle cx="230" cy="230" r="140" fill="none" stroke="${G}" stroke-width="3"/>
+    <g class="rr"><text font-family="JM" font-size="30" font-weight="500" letter-spacing="10" fill="${G}"><textPath href="#rg5">SI C'EST PAS BON • REMBOURSÉ • SI C'EST PAS BON • REMBOURSÉ • </textPath></text></g>
+    <text x="230" y="262" text-anchor="middle" font-family="IS" font-style="italic" font-size="92" fill="${CR}">100%</text>`, 330, 330), 'L');
+  const sealRR = seal.querySelector('.rr');
+  const qRem = SH(Q, 'remboursé', `font:italic 150px IS`, G);
+
+  // ================= S8 : fin =================
+  const J = E(world, '', '', 'full');
+  const jK = Tx(J, 'LE FOURNISSEUR', `font:500 36px JM;letter-spacing:.42em;color:${G}`);
+  const jP = SH(J, '14 €', `font:italic 300px IS`, G);
+  const jCats = Tx(J, '', `font:500 28px JM;color:${CR};letter-spacing:.2em`);
+  const jPill = E(J, `display:flex;align-items:center;gap:20px;background:${G};border-radius:70px;padding:24px 48px 24px 38px;white-space:nowrap;width:max-content`, `<svg viewBox="0 0 40 40" width="44" height="44"><path d="M20 34 V8 M8 19 L20 7 L32 19" stroke="${BK}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:58px AB;color:${BK};letter-spacing:.02em">LIEN EN BIO</span>`, 'L');
+  const jArr = jPill.querySelector('svg');
+
+  const flash = E(stage, `background:#FFF6E0`, '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES, hud: false });
+  const caps = Captions(stage, GROUPS, { hideAfter: 19.3, hl: G });
+
+  // mesures pour la découpe 700 -> 70
+  const w7 = d7.offsetWidth, w0 = d0.offsetWidth, wH = halves.offsetWidth, rowW = row.offsetWidth;
+
+  // scène visible avec fondu (sans opacité sur les conteneurs 3D)
+  const vis = (el, t, a, b, f = .25) => { const v = t >= a && t < b; on(el, v); if (v) el.style.opacity = Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b)); };
+
+  window.seek = function (T) {
+    const t = clamp(T, 0, DUR - 1e-4);
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    dust.forEach(d => { d.e.style.transform = `translate(${d.x + Math.sin(t * .5 + d.ph) * 30}px,${((d.y - t * d.sp) % 1920 + 1920) % 1920}px)`; d.e.style.opacity = .15 + .55 * (.5 + .5 * Math.sin(t * d.tw + d.ph)); });
+    // ligne d'or d'ouverture
+    on(gl, t < 1.6); gl.style.width = `${1000 * easeOut(seg(t, .05, .6))}px`; gl.style.transform = P(540, 470) + ` scaleY(${1 + 2 * (1 - seg(t, .6, 1.4))})`; gl.style.opacity = 1 - seg(t, 1.0, 1.5);
+
+    // ---------- S1/S2 ----------
+    vis(A, t, 0, 5.3);
+    if (t < 5.3) {
+      const mv = ease(seg(t, 2.9, 3.4));
+      aT.style.transform = P(540, 300 - mv * 40) + ` scale(${lerp(1.06, 1, easeOut(seg(t, .1, 2)))})`; aT.style.opacity = seg(t, .15, .6); aT.sweep(t, .4, 1.4);
+      const k = 'NEUVES · AVEC ÉTIQUETTE';
+      aK.textContent = k.slice(0, Math.floor(seg(t, 1.48, 2.6) * k.length));
+      aK.style.transform = P(540, 420 - mv * 40);
+      const fk = spring(t - .3, 7, .9);
+      const fx = lerp(540, 330, mv), fy = lerp(940, 900, mv), fs = lerp(1, .78, mv);
+      frame.style.transform = P(fx, fy + (1 - fk) * 120) + ` scale(${fs}) rotateY(${lerp(-8, 6, mv) + Math.sin(t * .8) * 3}deg)`; frame.style.opacity = clamp(fk * 1.4);
+      photo.style.transform = `scale(${1.12 - .1 * seg(t, 0, 5)})`; photo.style.transformOrigin = '50% 60%';
+      fSheen.style.transform = `translateX(${lerp(-700, 700, seg(t, .8, 2.0))}px)`;
+      // étiquette
+      const tk = spring(t - 1.9, 9, .9), sw = Math.sin((t - 1.9) * 3.2) * 18 * Math.exp(-(t - 1.9) * .6);
+      on(tag, t > 1.85); on(tagS, t > 1.85);
+      const tx = lerp(800, 600, mv), ty = lerp(560, 500, mv);
+      tagS.style.transform = `translate(${tx}px,${ty - 120 - (1 - tk) * 300}px) rotate(${-sw}deg)`;
+      tag.style.transform = `translate(${tx - 75}px,${ty - (1 - tk) * 300}px) rotate(${-sw}deg)`;
+      tag.style.opacity = tagS.style.opacity = 1 - seg(t, 2.9, 3.1);
+      // prix vinted
+      on(aSur, t > 3.0); aSur.style.transform = P(780, 650); aSur.style.opacity = seg(t, 3.05, 3.3);
+      const pk = spring(t - 4.28, 12, .7);
+      on(aPrice, t > 4.2); aPrice.style.transform = P(780 + (1 - pk) * 60, 800) + ` scale(${lerp(1.3, 1, pk)})`; aPrice.style.opacity = clamp(pk * 1.6); aPrice.sweep(t, 4.5, 1);
+      const prk = spring(t - 3.7, 10, .85);
+      on(proof, t > 3.6); proof.style.transform = P(780, lerp(1350, 1190, prk)) + ` scale(.92)`; proof.style.opacity = clamp(prk * 1.5);
+    }
+
+    // ---------- S3 ----------
+    vis(B, t, 5.1, 8.7, .2);
+    if (win(t, 5.1, 8.7)) {
+      bQ.style.transform = P(540, 330); bQ.style.opacity = seg(t, 5.16, 5.45);
+      const cut = 6.25, sk = spring(t - cut, 10, .8);
+      const shift = (wH / 2) * sk; // recentrage après disparition du dernier 0
+      const rx = 540 - rowW / 2 + shift, ry = 900;
+      row.style.transform = `translate(${rx}px,${ry - 200}px) scale(${lerp(.85, 1, easeOut(seg(t, 5.16, 5.8)))})`;
+      row.style.opacity = seg(t, 5.2, 5.5);
+      const d = Math.max(0, t - cut);
+      hTop.style.transform = `translate(${d * 260}px,${-d * 120 + 700 * d * d}px) rotate(${d * 40}deg)`;
+      hBot.style.transform = `translate(${d * 120}px,${d * 60 + 900 * d * d}px) rotate(${-d * 30}deg)`;
+      hTop.style.opacity = hBot.style.opacity = 1 - seg(t, cut + .25, cut + .7);
+      // lame
+      const bl = seg(t, 6.1, 6.3);
+      on(blade, win(t, 6.05, 6.6));
+      const bx0 = rx - shift + w7 + w0 - 40, by0 = ry + 140;
+      blade.style.width = `${(wH + 120) * 1.3 * bl}px`; blade.style.transform = `translate(${bx0}px,${by0}px) rotate(-28deg)`; blade.style.opacity = 1 - seg(t, 6.35, 6.6);
+      sparks.forEach(s => { const dd = t - cut; on(s.e, dd > 0 && dd < .7); if (dd > 0) { s.e.style.transform = `translate(${bx0 + wH / 2 + Math.cos(s.a) * s.d * easeOut(dd / .7)}px,${by0 - 60 + Math.sin(s.a) * s.d * easeOut(dd / .7) + 400 * dd * dd}px)`; s.e.style.opacity = 1 - dd / .7; } });
+      // €
+      const ek = spring(t - 6.4, 12, .6);
+      on(euro, t > 6.35);
+      euro.style.transform = `translate(${rx + w7 + w0 + 20}px,${ry - 80 + (1 - ek) * 80}px)`; euro.style.opacity = clamp(ek * 1.5);
+      on(bLiv, t > 7.4); bLiv.style.transform = P(540, 1180); bLiv.style.opacity = seg(t, 7.44, 7.7);
+      bRule.style.width = `${560 * easeOut(seg(t, 7.5, 8.0))}px`; bRule.style.transform = P(540, 1240);
+    }
+    const fl = win(t, 6.25, 6.45) ? .35 * (1 - seg(t, 6.25, 6.45)) : 0;
+    on(flash, fl > 0); flash.style.opacity = fl;
+
+    // ---------- S4 ----------
+    vis(Cc, t, 8.5, 10.85, .2);
+    if (win(t, 8.5, 10.85)) {
+      cK.style.transform = P(540, 330); cK.style.opacity = seg(t, 9.2, 9.4);
+      on(cDiv, t > 9.45); cDiv.style.transform = P(540, 470); cDiv.style.opacity = seg(t, 9.5, 9.8); cDiv.sweep(t, 10.1, 1);
+      bars.forEach((b, i) => {
+        const x = 540 + (i - 4.5) * 86, k = spring(t - 8.6 - i * .03, 14, .7);
+        const fallT = 9.9 + i * .03, d = Math.max(0, t - fallT);
+        const fall = i < 9 ? 1800 * d * d : 0;
+        const cx = i === 9 ? lerp(x, 540, ease(seg(t, 10.2, 10.6))) : x;
+        b.style.transform = P(cx, 960 + fall + (1 - k) * 500) + ` rotate(${i < 9 ? d * (i % 2 ? 60 : -60) : 0}deg) scale(${i === 9 ? 1 + .15 * ease(seg(t, 10.2, 10.6)) : 1})`;
+        b.style.opacity = i < 9 ? 1 - seg(d, .3, .6) : 1;
+      });
+    }
+
+    // ---------- S5 ----------
+    vis(D, t, 10.7, 14.3, .2);
+    if (win(t, 10.7, 14.3)) {
+      const up = ease(seg(t, 12.95, 13.35));
+      MENU.forEach(([, t0], i) => {
+        const k = spring(t - t0, 11, .85), act = i === MENU.length - 1 || t < MENU[i + 1][1];
+        const y = 560 + i * 210 - up * 900;
+        on(menu[i], t > t0 - .02); on(dNum[i], t > t0 - .02);
+        menu[i].style.transform = P(560 + (1 - k) * 120, y); menu[i].style.opacity = clamp(k * 1.6) * (act ? 1 : .3) * (1 - up);
+        menu[i].sweep(t, t0 + .1, .9);
+        dNum[i].style.transform = P(150, y); dNum[i].style.opacity = clamp(k) * (act ? 1 : .35) * (1 - up);
+      });
+      const bx = 110, by = 700, bw = 860, bh = 520, p = easeOut(seg(t, 13.0, 13.6));
+      const segs = [[bx, by, bw * Math.min(1, p * 4), 2], [bx + bw - 2, by, 2, bh * clamp(p * 4 - 1)], [bx + bw - bw * clamp(p * 4 - 2), by + bh - 2, bw * clamp(p * 4 - 2), 2], [bx, by + bh - bh * clamp(p * 4 - 3), 2, bh * clamp(p * 4 - 3)]];
+      box.forEach((b, i) => { on(b, t > 13.0); const [x, y, w, h] = segs[i]; b.style.transform = `translate(${x}px,${y}px)`; b.style.width = `${w}px`; b.style.height = `${h}px`; });
+      on(dTout, t > 13.0); dTout.style.transform = P(540, 860); dTout.style.opacity = seg(t, 13.0, 13.3);
+      on(dFour, t > 13.3); dFour.style.transform = P(540, 1010) + ` scale(${lerp(.9, 1, easeOut(seg(t, 13.4, 13.9)))})`; dFour.style.opacity = seg(t, 13.4, 13.7); dFour.sweep(t, 13.6, 1);
+    }
+
+    // ---------- S6 ----------
+    on(F, win(t, 14.2, 15.95));
+    if (win(t, 14.2, 15.95)) {
+      fK.style.transform = P(540, 330); fK.style.opacity = seg(t, 14.4, 14.6);
+      const k = spring(t - 14.55, 8, .7), sway = Math.sin((t - 15) * 1.5) * 12 * seg(t, 15, 15.4);
+      ext.style.transform = `translate(540px,860px) rotateX(${10 + Math.sin(t * 1.2) * 4}deg) rotateY(${lerp(-540, -16, k) + sway}deg) scale(${lerp(.2, 1, k)})`;
+      extSh.style.transform = P(540, 1120) + ` scale(${k})`;
+    }
+
+    // ---------- S7 ----------
+    vis(Q, t, 15.8, 19.35, .2);
+    if (win(t, 15.8, 19.35)) {
+      qK.style.transform = P(540, 330); qK.style.opacity = seg(t, 15.9, 16.2);
+      const out = ease(seg(t, 17.9, 18.3));
+      qc.forEach((p, i) => {
+        const t0 = 16.4 + i * .12, k = spring(t - t0, 10, .7);
+        on(p.e, t > t0 && out < 1);
+        p.e.style.transform = P(lerp(540, p.x, k), lerp(1400, p.y, k) - out * 200) + ` rotate(${p.r * k}deg) scale(${lerp(.4, 1, k) * (1 - out * .6)}) rotateY(${(1 - k) * 70}deg)`;
+        p.e.style.opacity = 1 - out;
+      });
+      const sk = spring(t - 18.1, 12, .65);
+      on(seal, t > 18.0); seal.style.transform = P(540, 780) + ` scale(${lerp(1.8, 1, sk) * clamp(sk * 2)}) rotate(${(1 - sk) * -30}deg)`;
+      sealRR.setAttribute('transform', `rotate(${(t - 18) * 30} 230 230)`);
+      on(qRem, t > 18.5); qRem.style.transform = P(540, 1080); qRem.style.opacity = seg(t, 18.56, 18.8); qRem.sweep(t, 18.7, 1);
+    }
+
+    // ---------- S8 ----------
+    vis(J, t, 19.2, DUR + 1, .3);
+    if (t >= 19.2) {
+      jK.style.transform = P(540, 420); jK.style.opacity = seg(t, 19.25, 19.6);
+      const pk = spring(t - 19.3, 9, .85);
+      jP.style.transform = P(540, 680) + ` scale(${lerp(1.15, 1, pk)})`; jP.style.opacity = clamp(pk * 1.4); jP.sweep(t, 19.6, 1.2);
+      const cats = 'LUXE · SNEAKERS · RUNNING · STREETWEAR';
+      jCats.textContent = cats.slice(0, Math.floor(seg(t, 19.8, 20.7) * cats.length)); jCats.style.transform = P(540, 940);
+      on(jPill, t > 19.7); jPill.style.transform = P(540, 1120) + ` scale(${spring(t - 19.76, 12, .6)})`;
+      jArr.style.transform = `translateY(${Math.sin(t * 8) * 5}px)`;
+    }
+    overlays(t, BK);
+    caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_dior.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  // ambiance luxe : nappes douces, scintillements, lame
+  const shimmer = (t, g = .05) => { for (let i = 0; i < 5; i++) s.tone(t + i * .06, .9, 'sine', 2093 * Math.pow(1.122, i), 2090 * Math.pow(1.122, i), g, .01); };
+  s.tone(0, 3.0, 'sine', 55, 55, .25, 1.0); s.noise(.05, .8, 'bandpass', 4000, 9000, .05, 2);
+  shimmer(.45); s.whoosh(.4, .9, .15);
+  s.tone(1.9, .25, 'sine', 1400, 1300, .08); s.whoosh(3.0, .6, .18, -.4);
+  shimmer(4.3, .06); s.tick(3.7, 2600, .05);
+  s.riser(5.2, 6.25, .14); s.noise(6.1, .2, 'highpass', 4000, 9000, .35, 1); s.tone(6.15, .5, 'triangle', 3200, 1600, .08);
+  s.impact(6.32, .7); shimmer(6.45, .07);
+  s.tone(7.44, 1.6, 'sine', 110, 110, .12, .3);
+  for (let i = 0; i < 9; i++) s.tick(9.9 + i * .03, 900 + i * 60, .06);
+  s.ding(10.4, .16);
+  [10.8, 11.44, 12.4].forEach((x, i) => { s.whoosh(x, .5, .12, .3); s.tone(x, .9, 'sine', 523 * Math.pow(1.26, i), 522 * Math.pow(1.26, i), .07, .02); });
+  shimmer(13.4, .06);
+  s.whoosh(14.6, .7, .2); s.impact(14.96, .7); shimmer(15.1, .05);
+  [16.4, 16.52, 16.64].forEach(x => s.pop(x, 800, .12)); s.shutter(16.56);
+  s.stamp(18.1, .7); shimmer(18.6, .06);
+  s.whoosh(19.2, .8, .15); s.tone(19.3, 2.6, 'sine', 659, 658, .06, .05); s.tone(19.3, 2.6, 'sine', 988, 986, .04, .05); s.pop(19.76, 600, .18);
+};
+init();
+</script>
+</body></html>
