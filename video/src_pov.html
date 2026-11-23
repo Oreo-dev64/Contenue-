@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>POV photos QC — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 7 — « POV : TU REÇOIS TES PHOTOS QC »   voix : voix_pov.mp3, 19.8 s
+   0.00  S1  Sticker POV + téléphone 3D tenu en main : suivi de commande, « Commandé ✓ » — pop, whoosh
+   2.51  S2  DING : notification qui tombe, téléphone qui vibre, ondes vertes      — ding, buzz
+   4.89  S3  Le chat s'ouvre : 3 photos de l'article arrivent                     — pops
+   6.47  S4  Loupe sur les photos + check-list COULEUR / TAILLE / DÉTAILS          — ticks
+   9.79  S5  Boutons VALIDER / REFUSER → tap VALIDER → colis 3D qui sort, 5 €/KG    — clic, whoosh, impact
+  13.49  S6  Rembobinage → tap REFUSER → tampon REMBOURSÉ, € qui reviennent         — glitch, stamp
+  15.95  S7  Bande « ZÉRO RISQUE » qui barre l'écran                              — impact
+  16.97  S8  Flood vert, fin : LIEN EN BIO                                        — ring-out
+   ===================================================================== */
+const DUR = 21.5;
+const WORDS = WORDS_JSON("pov");
+const GROUPS = makeGroups(WORDS);
+const BG = [[0, C.ink], [17.1, C.lime]];
+const HITS = [[0.05, 14], [2.51, 18], [4.9, 8], [10.6, 10], [12.37, 18], [13.5, 12], [14.27, 20], [15.95, 24], [17.1, 16], [17.5, 16]];
+const SCENES = [[0, 'POV'], [2.51, 'NOTIFICATION'], [4.89, 'PHOTOS QC'], [6.47, 'VÉRIFICATION'], [9.79, 'VALIDÉ'], [13.49, 'PAS BON ?'], [15.95, 'ZÉRO RISQUE'], [16.97, 'FOURNISSEUR 14 €']];
+const CHECK = [['COULEUR', 7.39], ['TAILLE', 8.4], ['DÉTAILS', 8.85]];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(9);
+  const bg = E(stage, '', '', 'full');
+  const glow = E(stage, `width:1400px;height:1400px;border-radius:50%;background:radial-gradient(closest-side,rgba(198,255,61,.16),rgba(198,255,61,0))`, '', 'L');
+  const world = E(stage, 'perspective:1700px', '', 'full');
+  const waves = [0, 1, 2].map(() => E(world, `width:520px;height:1080px;border-radius:90px;border:8px solid ${C.lime}`, '', 'L'));
+
+  // ----- téléphone -----
+  const ph = E(world, 'width:520px;height:1080px', '', 'L p3');
+  E(ph, `position:absolute;inset:0;background:#0E0E14;border-radius:76px;box-shadow:0 60px 110px rgba(0,0,0,.6), inset 0 0 0 3px #34343f`);
+  const scr = E(ph, `position:absolute;left:16px;top:16px;width:488px;height:1048px;border-radius:62px;overflow:hidden;background:#F4F4F7`);
+  E(scr, `position:absolute;left:50%;top:14px;width:120px;height:34px;margin-left:-60px;background:#0E0E14;border-radius:20px;z-index:5`);
+  // écran 1 : suivi de commande
+  const s1 = E(scr, `position:absolute;inset:0;padding:110px 34px 0`);
+  E(s1, '', `<div style="font:500 20px JM;letter-spacing:.2em;color:#888">COMMANDE #2048</div><div style="font:52px AB;color:#111;letter-spacing:-.02em;margin-top:8px">Ta commande</div>`);
+  const itemCard = E(s1, `margin-top:26px;display:flex;align-items:center;gap:20px;background:#fff;border-radius:24px;padding:18px;box-shadow:0 2px 0 #e4e4ea`, `<div style="width:110px;height:110px;border-radius:18px;background:#E2E8FF;display:flex;align-items:center;justify-content:center">${icon('jacket', '#1D1D25', '#fff', 90)}</div><div><div style="font:700 28px IT;color:#111">Veste — Taille M</div><div style="font:500 22px IT;color:#888">Fournisseur</div></div>`);
+  const STEPS = [['Commandé', .99], ['Arrivé chez le fournisseur', 3.1], ['Photos envoyées', 5.4], ['Livraison', 99]];
+  const stepEls = STEPS.map(([l]) => E(s1, `margin-top:22px;display:flex;align-items:center;gap:18px;font:600 28px IT;color:#111`, `<div class="dot" style="flex:none;width:44px;height:44px;border-radius:50%;border:4px solid #ccc;display:flex;align-items:center;justify-content:center;font:26px AB;color:#fff"></div><span>${l}</span>`));
+  const notif = E(scr, `position:absolute;left:18px;right:18px;top:0;padding:20px 22px;border-radius:30px;background:rgba(255,255,255,.96);box-shadow:0 20px 40px rgba(0,0,0,.25);display:flex;gap:16px;align-items:center;z-index:6`,
+    `<div style="flex:none;width:72px;height:72px;border-radius:18px;background:${C.lime};display:flex;align-items:center;justify-content:center;font:38px AB;color:${C.ink}">F</div><div><div style="font:600 20px IT;color:#888">FOURNISSEUR · maintenant</div><div style="font:700 28px IT;color:#111;line-height:1.15">Ta commande est arrivée ✓</div></div>`);
+  // écran 2 : chat photos
+  const s2 = E(scr, `position:absolute;inset:0;background:#F4F4F7`);
+  E(s2, `position:absolute;left:0;right:0;top:0;height:132px;background:#fff;border-bottom:1px solid #e4e4ea;display:flex;align-items:flex-end;gap:16px;padding:0 26px 18px`, `<div style="width:64px;height:64px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:30px AB;color:${C.ink}">F</div><div><div style="font:700 28px IT;color:#111">Fournisseur</div><div style="font:500 20px IT;color:#1BAF5D">● en ligne</div></div>`);
+  const msg = E(s2, `position:absolute;left:22px;top:156px;padding:18px 26px;background:#fff;border-radius:28px 28px 28px 8px;font:600 28px IT;color:#111;box-shadow:0 2px 0 #e4e4ea`, 'Voici les photos de ton article :');
+  const PH = [['#E2E8FF', -4], ['#EAFBCB', 3], ['#FFE7D6', -2]];
+  const photos = PH.map(([c, r], i) => E(s2, `position:absolute;left:${i === 0 ? 22 : i === 1 ? 250 : 136}px;top:${i < 2 ? 250 : 480}px;width:216px;height:216px;border-radius:22px;background:${c};display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(0,0,0,.12)`, `${icon('jacket', '#1D1D25', '#fff', 170)}<div style="position:absolute;left:10px;bottom:8px;font:500 16px JM;color:#333;letter-spacing:.12em">QC ${i + 1}/3</div>`));
+  const lensG = E(s2, `position:absolute;left:0;top:0;width:170px;height:170px;border-radius:50%;border:10px solid ${C.ink};background:rgba(255,255,255,.25);box-shadow:0 10px 20px rgba(0,0,0,.25)`, `<div style="position:absolute;left:140px;top:140px;width:24px;height:90px;background:${C.ink};border-radius:12px;transform:rotate(-45deg);transform-origin:12px 0"></div>`);
+  const ask = E(s2, `position:absolute;left:22px;top:730px;padding:18px 26px;background:#fff;border-radius:28px 28px 28px 8px;font:600 30px IT;color:#111;box-shadow:0 2px 0 #e4e4ea`, "C'est bon pour toi ?");
+  const bOk = E(s2, `position:absolute;left:22px;right:22px;bottom:150px;height:100px;border-radius:50px;background:${C.lime};display:flex;align-items:center;justify-content:center;font:40px AB;color:${C.ink}`, '✓ VALIDER');
+  const bNo = E(s2, `position:absolute;left:22px;right:22px;bottom:34px;height:100px;border-radius:50px;background:${C.red};display:flex;align-items:center;justify-content:center;font:40px AB;color:#fff`, '✗ REFUSER');
+  const tap = E(s2, `position:absolute;left:50%;width:70px;height:70px;margin-left:-35px;border-radius:50%;background:rgba(11,11,16,.35)`);
+  // écran 3 : livraison
+  const s3 = E(scr, `position:absolute;inset:0;background:${C.lime};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px`, `<div style="font:500 24px JM;letter-spacing:.24em;color:${C.ink}">VALIDÉ ✓</div><div style="font:64px AB;color:${C.ink}">LIVRAISON</div><div style="font:150px AB;color:${C.ink};letter-spacing:-.05em;line-height:1">5 €</div><div style="font:52px AB;color:${C.ink}">LE KILO</div>`);
+  // écran 4 : remboursé
+  const s4 = E(scr, `position:absolute;inset:0;background:${C.ink};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px`, `<div style="font:500 24px JM;letter-spacing:.24em;color:${C.red}">REFUSÉ ✗</div><div style="font:62px AB;color:#fff;line-height:1">REMBOURSÉ</div><div style="font:44px AB;color:${C.lime}">INTÉGRALEMENT</div><div style="margin-top:20px;width:360px;height:24px;border-radius:12px;background:#2a2a35;overflow:hidden"><div class="rf" style="height:100%;width:0;background:${C.lime}"></div></div><div class="rp" style="font:500 26px JM;color:${C.cream};letter-spacing:.2em">0 %</div>`);
+  const rf = s4.querySelector('.rf'), rp = s4.querySelector('.rp');
+  const rew = E(scr, `position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 3px,transparent 3px 9px),rgba(11,11,16,.55);display:flex;align-items:center;justify-content:center;z-index:7`, svg('0 0 120 80', `<path d="M58 8 L8 40 L58 72 Z M112 8 L62 40 L112 72 Z" fill="#fff"/>`, 200, 133));
+
+  // ----- hors téléphone -----
+  const pov = E(world, `background:${C.lime};border-radius:26px;padding:18px 38px 12px;font:110px AB;color:${C.ink};letter-spacing:-.03em;box-shadow:0 20px 40px rgba(0,0,0,.35);width:max-content`, 'POV', 'L');
+  const povSub = Tx(world, "T'AS COMMANDÉ", `font:500 32px JM;letter-spacing:.24em;color:${C.cream}`);
+  const chips = CHECK.map(([l]) => E(world, `display:flex;align-items:center;gap:14px;background:${C.cream};border-radius:40px;padding:14px 28px 14px 14px;width:max-content;box-shadow:0 16px 30px rgba(0,0,0,.3)`, `<div style="width:56px;height:56px;border-radius:50%;background:#18A957;display:flex;align-items:center;justify-content:center">${svg('0 0 40 40', `<path d="M10 21 L17 28 L30 13" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, 34, 34)}</div><span style="font:40px AB;color:${C.ink}">${l}</span>`, 'L'));
+  const box = BOX(world, 230);
+  const big5 = Tx(world, '5 € / KG', `font:150px AB;color:${C.lime};letter-spacing:-.04em`);
+  const coins = Array.from({ length: 16 }, (_, i) => ({ e: Tx(world, '€', `font:${60 + R() * 40}px AB;color:${i % 2 ? C.lime : C.cream}`), a: R() * Math.PI * 2, d: 500 + R() * 300 }));
+  const stamp = Tx(world, 'REMBOURSÉ ✓', `font:120px AB;color:${C.lime};border:12px solid ${C.lime};padding:12px 36px 4px;border-radius:24px;background:rgba(11,11,16,.6)`);
+  const tape = E(world, `width:1600px;height:230px;background:${C.lime};display:flex;align-items:center;justify-content:center;gap:60px;box-shadow:0 30px 60px rgba(0,0,0,.4)`, `<span style="font:150px AB;color:${C.ink};letter-spacing:-.04em;white-space:nowrap">ZÉRO RISQUE</span>`, 'L');
+  const tape2 = E(world, `width:1600px;height:90px;background:${C.ink};overflow:hidden;white-space:nowrap;font:500 40px JM;color:${C.lime};letter-spacing:.2em;line-height:90px`, ('PHOTOS AVANT ENVOI · REMBOURSÉ SI PAS BON · ').repeat(6), 'L');
+  const floodJ = Flood(world, C.lime, 540, 860, 16.85, 17.1);
+  const end = EndCard(world, 17.1, { tPill: 18.9 });
+
+  const overlays = Overlays(stage, { scenes: SCENES });
+  const caps = Captions(stage, GROUPS, { hideAfter: 18.8 });
+
+  const phX = track(540, [[6.35, 430, 10, .85], [9.65, 540, 10, .85]]);
+  const setDot = (el, k) => { const d = el.querySelector('.dot'); d.style.background = k ? '#18A957' : 'transparent'; d.style.borderColor = k ? '#18A957' : '#ccc'; d.textContent = k ? '✓' : ''; };
+
+  window.seek = function (T) {
+    const t = clamp(T, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    const inPhone = t < 17.1;
+    on(glow, inPhone); glow.style.transform = P(540, 860) + ` scale(${1 + .1 * Math.sin(t * 2)})`;
+    on(ph, inPhone);
+    if (inPhone) {
+      const ek = spring(t - .05, 9, .72), vib = win(t, 2.5, 3.1) ? Math.sin(t * 120) * 8 * (1 - seg(t, 2.5, 3.1)) : 0;
+      const hx = Math.sin(t * 1.1) * 8 + Math.sin(t * 2.3) * 4, hy = Math.cos(t * 1.3) * 8;
+      ph.style.transform = `translate(${phX(t) + hx + vib}px,${lerp(2300, 860, ek) + hy}px) translate(-50%,-50%) rotateX(${6 + Math.sin(t * .9) * 2}deg) rotateY(${lerp(50, -6, ek) + Math.sin(t * .7) * 3 + (phX(t) - 540) * -.04}deg) rotateZ(${lerp(-10, 0, ek) + vib * .2}deg)`;
+      // écrans
+      on(s1, t < 5.2); on(s2, win(t, 4.85, 13.5) || win(t, 13.5, 14.3)); on(s3, win(t, 11.15, 13.5)); on(s4, t >= 14.2);
+      stepEls.forEach((el, i) => setDot(el, t >= STEPS[i][1]));
+      itemCard.style.transform = `scale(${1 + .04 * (1 - spring(t - .99, 18, .5)) * (t > .99)})`;
+      const nk = spring(t - 2.51, 14, .65);
+      on(notif, win(t, 2.45, 5.2)); notif.style.transform = `translateY(${lerp(-200, 56, nk) - easeIn(seg(t, 4.6, 4.9)) * 260}px)`;
+      // s2
+      s2.style.transform = `translateX(${(1 - spring(t - 4.89, 14, .8)) * 500}px)`;
+      const mk = spring(t - 4.95, 16, .6); msg.style.transform = `scale(${mk})`; msg.style.transformOrigin = '0 100%';
+      photos.forEach((p, i) => { const k = spring(t - 5.4 - i * .12, 15, .55); p.style.transform = `scale(${k}) rotate(${PH[i][1]}deg)`; });
+      // loupe
+      const lOn = win(t, 6.45, 9.6); on(lensG, lOn);
+      if (lOn) { const u = seg(t, 6.5, 9.5); const lx = 60 + 260 * (.5 + .5 * Math.sin(u * 6.5)), ly = 260 + 230 * (.5 + .5 * Math.sin(u * 4.1 + 1)); lensG.style.transform = `translate(${lx}px,${ly}px) scale(${spring(t - 6.47, 16, .6)})`; }
+      // question + boutons
+      const qk = spring(t - 9.79, 16, .6);
+      on(ask, t > 9.75); ask.style.transform = `scale(${qk})`; ask.style.transformOrigin = '0 100%';
+      const bk = spring(t - 9.9, 14, .65);
+      bOk.style.transform = `translateY(${(1 - bk) * 300}px) scale(${win(t, 10.48, 10.7) || win(t, 13.9, 14.1) ? .94 : 1})`;
+      bNo.style.transform = `translateY(${(1 - bk) * 300}px) scale(${win(t, 13.9, 14.1) ? .94 : 1})`;
+      bOk.style.opacity = t > 13.6 ? .4 : 1;
+      const tapA = win(t, 10.45, 10.95), tapB = win(t, 13.85, 14.35);
+      on(tap, tapA || tapB);
+      if (tapA || tapB) { const p = tapA ? seg(t, 10.45, 10.95) : seg(t, 13.85, 14.35); tap.style.bottom = tapA ? '165px' : '49px'; tap.style.transform = `scale(${1 + p * 4})`; tap.style.opacity = 1 - p; }
+      s3.style.transform = `scale(${lerp(.6, 1, spring(t - 11.2, 14, .7))})`; s3.style.opacity = seg(t, 11.15, 11.3);
+      on(rew, win(t, 13.45, 13.85)); rew.style.opacity = 1 - seg(t, 13.75, 13.85);
+      s4.style.opacity = seg(t, 14.2, 14.35);
+      const rpv = easeOut(seg(t, 14.6, 15.5)); rf.style.width = `${rpv * 100}%`; rp.textContent = `${Math.round(rpv * 100)} %`;
+    }
+    // ondes de vibration
+    waves.forEach((w, i) => { const d = t - 2.51 - i * .15; on(w, d > 0 && d < .8); if (d > 0) { w.style.transform = P(540, 860) + ` scale(${1 + d * .5})`; w.style.opacity = 1 - d / .8; } });
+    // POV sticker
+    const pk = spring(t - .05, 16, .5), pout = easeIn(seg(t, 2.3, 2.6));
+    on(pov, t < 2.6); pov.style.transform = P(250, 330) + ` rotate(-9deg) scale(${lerp(2.2, 1, pk) * clamp(pk * 3) * (1 - pout)})`;
+    on(povSub, win(t, .95, 2.6)); povSub.style.transform = P(640, 330); povSub.style.opacity = seg(t, 1.0, 1.2) * (1 - pout);
+    // check-list
+    chips.forEach((c, i) => { const t0 = CHECK[i][1], k = spring(t - t0, 16, .55), out = easeIn(seg(t, 9.55, 9.8)); on(c, win(t, t0 - .02, 9.8)); c.style.transform = P(lerp(1300, 860, k) + out * 600, 600 + i * 150) + ` rotate(${(1 - k) * 10 - 3}deg)`; });
+    // colis + 5 €/kg
+    const bk2 = spring(t - 12.3, 9, .7), bOut = easeIn(seg(t, 13.3, 13.55));
+    on(box, win(t, 12.2, 13.6));
+    box.style.transform = `translate(540px,${lerp(900, 460, bk2) - bOut * 900}px) translateZ(${bk2 * 300}px) rotateX(-22deg) rotateY(${-30 + (1 - bk2) * 400}deg) scale(${bk2})`;
+    const fk = spring(t - 12.37, 16, .5);
+    on(big5, win(t, 12.3, 13.5)); big5.style.transform = P(540, 1240) + ` scale(${lerp(2, 1, fk)})`; big5.style.opacity = clamp(fk * 2) * (1 - seg(t, 13.3, 13.5));
+    // remboursé
+    const sk = spring(t - 14.27, 16, .5);
+    on(stamp, win(t, 14.2, 15.95)); stamp.style.transform = P(540, 420) + ` rotate(-7deg) scale(${lerp(2.6, 1, sk)})`; stamp.style.opacity = clamp(sk * 2);
+    coins.forEach(c => { const d = t - 14.6; on(c.e, d > 0 && d < .9); if (d > 0) { const k = easeIn(d / .9); c.e.style.transform = P(540 + Math.cos(c.a) * c.d * (1 - k), 860 + Math.sin(c.a) * c.d * (1 - k)) + ` scale(${1 - k * .7})`; c.e.style.opacity = 1 - seg(d, .7, .9); } });
+    // zéro risque
+    const zk = spring(t - 15.95, 16, .6);
+    on(tape, win(t, 15.9, 17.2)); on(tape2, win(t, 15.9, 17.2));
+    tape.style.transform = P(lerp(2200, 540, zk), 860) + ` rotate(-8deg)`;
+    tape2.style.transform = P(lerp(-1200, 540, spring(t - 16.05, 16, .6)), 1050) + ` rotate(-8deg)`;
+    tape2.scrollLeft = 0; tape2.style.textIndent = `${-((t * 200) % 900)}px`;
+    floodJ(t);
+    end(t);
+    overlays(t, bgc);
+    caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_pov.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.25, .6, .3); s.pop(.1, 700, .3); s.pop(.99, 1000, .2);
+  s.ding(2.51, .35); s.tone(2.55, .5, 'square', 160, 150, .06, .01); s.tone(2.75, .3, 'square', 160, 150, .05, .01); s.pop(3.1, 900, .2);
+  s.whoosh(4.9, .35, .25, .4); [5.4, 5.52, 5.64].forEach((x, i) => s.pop(x, 800 + i * 140, .22));
+  s.whoosh(6.5, .3, .15); CHECK.forEach(([, x], i) => { s.pop(x, 900 + i * 150, .25); s.tick(x + .05, 2400, .08); });
+  s.pop(9.79, 700, .2); s.whoosh(9.9, .3, .2);
+  s.tick(10.48, 1500, .25); s.ding(10.55, .15); s.whoosh(11.2, .3, .2); s.whoosh(12.2, .5, .3); s.impact(12.37, .7);
+  for (let x = 13.45; x < 13.85; x += .03) s.tick(x, 400 + (13.85 - x) * 2000, .05); s.glitch(13.5, .15);
+  s.tick(13.9, 1500, .25); s.buzz(13.95, .1); s.stamp(14.27, .9);
+  for (let x = 14.6; x < 15.5; x += .06) s.tick(x, 1500 + (x - 14.6) * 1500, .04); s.cash(15.5, .25);
+  s.whoosh(15.9, .3, .3); s.impact(15.95, .9); s.whoosh(16.1, .4, .2, -.4);
+  s.riser(16.4, 17.1, .18); s.impact(17.1, .8); s.whoosh(17.2, .5, .3); s.impact(17.5, .5); s.pop(18.9, 700, .3); s.ringout(19.2);
+};
+init();
+</script>
+</body></html>

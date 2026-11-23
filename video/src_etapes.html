@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>4 étapes — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 8 — « LE FOURNISSEUR EN 4 ÉTAPES »   voix : voix_etapes.mp3, 22.8 s
+   0.00  S1  « 4 ÉTAPES » + escalier isométrique 3D qui pousse du sol          — impacts montants
+   2.13  S2  La balle saute marche 1 : ENVOIE LA PHOTO (vraie photo qui s'envole) — boing, whoosh
+   4.76      Marche 2 : DONNE TA TAILLE (puces XS…XL, M sélectionnée)            — boing, clic
+   6.49      Marche 3 : PHOTOS AVANT L'ENVOI (3 polaroids QC)                    — boing, obturateur
+   9.08      Marche 4 : C'EST BON → 5 €/KG + LIVRÉ EN 6–7 JOURS                  — boing, ding
+  14.66  S3  Exemple : la vraie veste, étiquette 25 €, puis l'annonce Vinted 130 € — whoosh, caisse
+  19.96  S4  Flood vert, fin : LIEN EN BIO                                       — impact, ring-out
+   ===================================================================== */
+const DUR = 25;
+const IMG = "assets/vinted_ua.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("etapes");
+const GROUPS = makeGroups(WORDS);
+const BG = [[0, C.blue], [14.85, C.ink], [20.2, C.lime]];
+const ST = [2.13, 4.76, 6.49, 9.08];
+const LBL = ['ENVOIE LA PHOTO', 'DONNE TA TAILLE', 'PHOTOS AVANT ENVOI', 'VALIDE & REÇOIS'];
+const HITS = [[.3, 8], [.6, 8], [.9, 8], [1.2, 10], ...ST.map(x => [x, 14]), [16.99, 14], [18.5, 16], [20.2, 16], [20.6, 16]];
+const SCENES = [[0, '4 ÉTAPES'], [2.13, 'ÉTAPE 1'], [4.76, 'ÉTAPE 2'], [6.49, 'ÉTAPE 3'], [9.08, 'ÉTAPE 4'], [14.66, 'EXEMPLE'], [19.96, 'FOURNISSEUR 14 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const bg = E(stage, '', '', 'full');
+  const grid = E(stage, `left:-90px;top:-90px;width:1260px;height:2100px;background-image:linear-gradient(rgba(255,255,255,.07) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.07) 2px,transparent 2px);background-size:90px 90px`, '', 'L');
+  const world = E(stage, '', '', 'full');
+
+  // ===== titre =====
+  const tK = Tx(world, 'LE FOURNISSEUR EN', `font:500 34px JM;letter-spacing:.3em;color:#fff`);
+  const tBig = Tx(world, '4 ÉTAPES', `font:200px AB;color:${C.lime};letter-spacing:-.05em`);
+
+  // ===== escalier isométrique (SVG) =====
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = document.createElementNS(NS, 'svg'); sv.setAttribute('width', 1080); sv.setAttribute('height', 1920); sv.style.cssText = 'position:absolute;left:0;top:0;overflow:visible';
+  world.appendChild(sv);
+  const gStairs = document.createElementNS(NS, 'g'); sv.appendChild(gStairs);
+  const poly = (fill) => { const p = document.createElementNS(NS, 'polygon'); p.setAttribute('fill', fill); gStairs.appendChild(p); return p; };
+  const cols = [3, 2, 1, 0].map(k => ({ k, top: poly(C.cream), fy: poly('#B9B6AC'), fx: poly('#8F8C83'), num: (() => { const tx = document.createElementNS(NS, 'text'); tx.textContent = `0${k + 1}`; tx.setAttribute('font-family', 'AB'); tx.setAttribute('font-size', '92'); tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('dominant-baseline', 'central'); gStairs.appendChild(tx); return tx; })() }));
+  const shadow = document.createElementNS(NS, 'ellipse'); shadow.setAttribute('fill', 'rgba(0,0,0,.25)'); sv.appendChild(shadow);
+  const ball = document.createElementNS(NS, 'circle'); ball.setAttribute('r', 42); ball.setAttribute('fill', C.lime); ball.setAttribute('stroke', C.ink); ball.setAttribute('stroke-width', 8); sv.appendChild(ball);
+  const Wc = 170, Hu = 100;
+
+  // ===== contenu des étapes =====
+  const head = E(world, `display:flex;align-items:center;gap:22px;width:max-content`, '', 'L');
+  const hNum = E(head, `width:120px;height:120px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:64px AB;color:${C.ink}`, '01');
+  const hTxt = E(head, `font:70px AB;color:#fff;letter-spacing:-.02em;white-space:nowrap`, '');
+  const v1 = E(world, 'display:flex;align-items:center;gap:30px;width:max-content', '', 'L');
+  const v1p = Crop(v1, IMG, IW, IH, 35, 563, 550, 927, 130, 'position:relative;border-radius:16px;border:5px solid #fff');
+  E(v1, '', svg('0 0 120 60', `<path d="M4 30 H100 M80 10 L104 30 L80 50" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, 120, 60));
+  E(v1, `background:#fff;border-radius:26px 26px 6px 26px;padding:16px 24px;font:700 34px IT;color:${C.ink}`, 'Je veux ça 👆'.replace(' 👆', ' !'));
+  const v2 = E(world, 'display:flex;gap:16px;width:max-content', '', 'L');
+  const sizes = ['XS', 'S', 'M', 'L', 'XL'].map(z => E(v2, `width:120px;height:96px;border-radius:24px;border:4px solid #fff;display:flex;align-items:center;justify-content:center;font:44px AB;color:#fff`, z));
+  const v3 = E(world, 'width:560px;height:230px', '', 'L');
+  const pols = [-12, 0, 12].map((r, i) => E(v3, `position:absolute;left:${30 + i * 170}px;top:10px;width:160px;height:200px;background:#fff;padding:10px;border-radius:6px;box-shadow:0 14px 30px rgba(0,0,0,.3);transform:rotate(${r}deg)`, `<div style="width:140px;height:140px;background:${['#E2E8FF', '#EAFBCB', '#FFE7D6'][i]};display:flex;align-items:center;justify-content:center">${icon('jacket', '#1D1D25', '#fff', 110)}</div><div style="margin-top:12px;font:500 15px JM;color:#333;letter-spacing:.1em">PHOTO QC ${i + 1}/3</div>`));
+  const v4 = E(world, 'display:flex;gap:18px;width:max-content', '', 'L');
+  const v4a = E(v4, `background:${C.lime};border-radius:44px;padding:18px 30px 14px;font:52px AB;color:${C.ink};white-space:nowrap`, '5 € / KG');
+  const v4b = E(v4, `background:#fff;border-radius:44px;padding:18px 30px 14px;font:52px AB;color:${C.ink};white-space:nowrap`, '6–7 JOURS');
+  const v4ok = E(world, `display:flex;align-items:center;gap:14px;background:${C.ink};border-radius:40px;padding:12px 26px 12px 12px;width:max-content`, `<div style="width:54px;height:54px;border-radius:50%;background:#18A957;display:flex;align-items:center;justify-content:center">${svg('0 0 40 40', `<path d="M10 21 L17 28 L30 13" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, 32, 32)}</div><span style="font:40px AB;color:#fff">C'EST BON ?</span>`, 'L');
+  const minibox = BOX(world, 120);
+  const wEx = E(world, `width:1300px;height:2400px;background:${C.ink};clip-path:polygon(0 0,100% 0,100% 92%,0 100%)`, '', 'L');
+
+  // ===== exemple =====
+  const X = E(world, 'perspective:1500px', '', 'full');
+  const xT = MW(X, 'EXEMPLE', `font:120px AB;color:#fff;letter-spacing:-.03em`);
+  const xJ = Crop(X, IMG, IW, IH, 35, 563, 550, 927, 330, `border-radius:26px;border:8px solid #fff;box-shadow:0 30px 60px rgba(0,0,0,.4)`);
+  const xLab = Tx(X, 'VESTE UNDER ARMOUR', `font:500 28px JM;letter-spacing:.22em;color:${C.cream}`);
+  const xTag = E(X, `background:${C.lime};border-radius:30px;padding:18px 32px 12px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.4);width:max-content`, `<div style="font:500 22px JM;letter-spacing:.2em;color:${C.ink}">FOURNISSEUR</div><div style="font:110px AB;color:${C.ink};letter-spacing:-.04em;line-height:1">25 €</div>`, 'L');
+  const xV = Crop(X, IMG, IW, IH, 51, 1709, 1063, 317, 620, `border-radius:20px;border:4px solid ${C.cream};box-shadow:0 20px 40px rgba(0,0,0,.4)`);
+  const xVTag = E(X, `background:#fff;border-radius:30px;padding:18px 32px 12px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.4);width:max-content`, `<div style="font:500 22px JM;letter-spacing:.2em;color:${C.ink}">SUR VINTED</div><div style="font:110px AB;color:${C.ink};letter-spacing:-.04em;line-height:1">130 €</div>`, 'L');
+  const floodJ = Flood(world, C.lime, 540, 960, 19.9, 20.2);
+  const end = EndCard(world, 20.2, { tPill: 21.85 });
+
+  const overlays = Overlays(stage, { scenes: SCENES });
+  const caps = Captions(stage, GROUPS, { hideAfter: 21.8 });
+
+  window.seek = function (T) {
+    const t = clamp(T, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    on(grid, t < 20.2); grid.style.transform = `translate(${(t * 25) % 90}px,${(t * 15) % 90}px)`; grid.style.opacity = bgc === C.ink ? .5 : 1;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    const stairsOn = t < 15.0;
+    // ----- titre -----
+    const tOut = easeIn(seg(t, 1.9, 2.15));
+    on(tK, t < 2.2); on(tBig, t < 2.2);
+    tK.style.transform = P(540, 300); tK.style.opacity = seg(t, .05, .3) * (1 - tOut);
+    const tk = spring(t - 1.23, 16, .5);
+    tBig.style.transform = P(540, 440) + ` scale(${lerp(2.2, 1, tk) * (1 - tOut)})`; tBig.style.opacity = clamp(tk * 2);
+    // ----- escalier -----
+    on(sv, stairsOn);
+    let k = -1; ST.forEach((s, i) => { if (t >= s - .02) k = i; });
+    const out = easeIn(seg(t, 14.6, 14.95));
+    const camX = track(0, ST.map((s, i) => [s - .3, (i - 1.5) * 40, 6, .9]))(t), camY = track(0, ST.map((s, i) => [s - .3, (i - 1.5) * 25, 6, .9]))(t);
+    const ox = 319 + camX, oy = 960 + camY + out * 1400;
+    const pr = (X, Y, Z) => [ox + (X - Y) * .866, oy + (X + Y) * .5 - Z];
+    const pts = a => a.map(p => p.join(',')).join(' ');
+    const Hs = [0, 1, 2, 3].map(i => Hu * (i + 1) * spring(t - .3 - i * .3, 12, .6));
+    cols.forEach(c => {
+      const i = c.k, X0 = (3 - i) * Wc, Y0 = 0, H = Hs[i];
+      c.top.setAttribute('points', pts([pr(X0, Y0, H), pr(X0 + Wc, Y0, H), pr(X0 + Wc, Y0 + Wc, H), pr(X0, Y0 + Wc, H)]));
+      c.fy.setAttribute('points', pts([pr(X0, Y0 + Wc, H), pr(X0 + Wc, Y0 + Wc, H), pr(X0 + Wc, Y0 + Wc, 0), pr(X0, Y0 + Wc, 0)]));
+      c.fx.setAttribute('points', pts([pr(X0 + Wc, Y0, H), pr(X0 + Wc, Y0 + Wc, H), pr(X0 + Wc, Y0 + Wc, 0), pr(X0 + Wc, Y0, 0)]));
+      const lit = i <= k, act = i === k;
+      c.top.setAttribute('fill', lit ? C.lime : C.cream); c.fy.setAttribute('fill', lit ? '#9DCC2E' : '#B9B6AC'); c.fx.setAttribute('fill', lit ? '#7BA21F' : '#8F8C83');
+      const [cx, cy] = pr(X0 + Wc / 2, Y0 + Wc / 2, H);
+      c.num.setAttribute('transform', `translate(${cx} ${cy}) matrix(.866 .5 -.866 .5 0 0)`);
+      c.num.setAttribute('fill', lit ? C.ink : '#6E6B63'); c.num.setAttribute('opacity', act ? 1 : .8);
+    });
+    // ----- balle -----
+    const topAt = i => i < 0 ? pr(4 * Wc + 140, Wc / 2, 0) : pr((3 - i) * Wc + Wc / 2, Wc / 2, Hs[i]);
+    let bx, by, squash = 1;
+    if (k < 0 || t < ST[0]) { const [x0, y0] = topAt(-1); const [x1, y1] = topAt(0); const u = seg(t, ST[0] - .4, ST[0]); bx = lerp(x0, x1, u); by = lerp(y0, y1, u) - Math.sin(u * Math.PI) * 220 - 42; }
+    else {
+      const nx = k + 1 < 4 ? ST[k + 1] : 99, u = seg(t, nx - .4, nx);
+      const [x0, y0] = topAt(k), [x1, y1] = k + 1 < 4 ? topAt(k + 1) : topAt(k);
+      bx = lerp(x0, x1, u); by = lerp(y0, y1, u) - Math.sin(u * Math.PI) * 220 - 42;
+      const land = t - ST[k]; if (land < .25) squash = 1 - .3 * Math.sin(land / .25 * Math.PI);
+      if (u === 0) by += Math.abs(Math.sin((t - ST[k]) * 5)) * -18 * (t - ST[k] > .3 ? 1 : 0);
+    }
+    ball.setAttribute('cx', bx); ball.setAttribute('cy', by + 42 * (1 - squash)); ball.setAttribute('rx', 42);
+    ball.setAttribute('transform', `translate(${bx} ${by + 42}) scale(${2 - squash} ${squash}) translate(${-bx} ${-by - 42})`);
+    const gy = k >= 0 ? topAt(Math.min(3, k))[1] : topAt(-1)[1];
+    shadow.setAttribute('cx', bx); shadow.setAttribute('cy', gy + 4); shadow.setAttribute('rx', 40); shadow.setAttribute('ry', 14);
+    on(shadow, stairsOn); on(ball, stairsOn);
+    // ----- en-tête + visuels -----
+    const showHead = k >= 0 && t < 14.6;
+    on(head, showHead);
+    if (showHead) { const hk = spring(t - ST[k], 18, .6); hNum.textContent = `0${k + 1}`; hTxt.textContent = LBL[k]; head.style.transform = P(540, 300) + ` translateX(${(1 - hk) * 200}px)`; head.style.opacity = clamp(hk * 2); }
+    const vis = (el, i, y, fn) => { const a = ST[i], b = i < 3 ? ST[i + 1] : 14.6, v = t >= a && t < b; on(el, v); if (v) { const vk = spring(t - a - .1, 14, .6); el.style.transform = P(540, y) + ` scale(${vk})`; if (fn) fn(t - a); } };
+    vis(v1, 0, 470, d => { v1p.style.transform = `translate(${easeIn(seg(d, 1.2, 2.2)) * 700}px,${-easeIn(seg(d, 1.2, 2.2)) * 300}px) rotate(${seg(d, 1.2, 2.2) * 30}deg)`; });
+    vis(v2, 1, 470, d => sizes.forEach((z, i) => { const sel = i === 2 && d > .9; z.style.background = sel ? C.lime : 'transparent'; z.style.color = sel ? C.ink : '#fff'; z.style.borderColor = sel ? C.lime : '#fff'; z.style.transform = `scale(${sel ? 1 + .15 * (1 - spring(d - .9, 18, .5)) : 1})`; }));
+    vis(v3, 2, 470, d => pols.forEach((p, i) => { const pk = spring(d - .6 - i * .15, 15, .55); p.style.transform = `rotate(${[-12, 0, 12][i]}deg) scale(${pk})`; }));
+    vis(v4, 3, 520, d => { v4a.style.transform = `scale(${spring(d - 2.2, 16, .55)})`; v4b.style.transform = `scale(${spring(d - 4.3, 16, .55)})`; });
+    on(v4ok, win(t, ST[3], 14.6)); v4ok.style.transform = P(540, 430) + ` scale(${spring(t - 9.6, 16, .55)})`;
+    const mb = spring(t - 12.4, 9, .7);
+    on(minibox, win(t, 12.3, 14.6));
+    minibox.style.transform = `translate(${lerp(-200, 900, seg(t, 12.4, 14.4))}px,${640 - Math.sin(seg(t, 12.4, 14.4) * Math.PI) * 80}px) rotateX(-24deg) rotateY(${-35 + t * 120}deg) scale(${mb})`;
+    on(wEx, win(t, 14.55, 14.9));
+    if (win(t, 14.55, 14.9)) wEx.style.transform = `translate(-110px,${lerp(-2500, -200, easeIn(seg(t, 14.6, 14.85)))}px)`;
+    // ----- exemple -----
+    on(X, win(t, 14.8, 20.25));
+    if (win(t, 14.8, 20.25)) {
+      xT.style.transform = P(540, 300); xT.reveal(t, 14.7, .04);
+      const jk = spring(t - 15.5, 11, .65);
+      xJ.style.transform = P(330, 720) + ` rotate(${lerp(-25, -4, jk)}deg) scale(${jk})`;
+      on(xLab, t > 15.9); xLab.style.transform = P(330, 1050); xLab.style.opacity = seg(t, 15.95, 16.2);
+      const tg = spring(t - 16.99, 16, .5);
+      on(xTag, t > 16.9); xTag.style.transform = P(780, 560) + ` rotate(8deg) scale(${lerp(2, 1, tg) * clamp(tg * 2)})`;
+      const vk = spring(t - 17.97, 12, .65);
+      on(xV, t > 17.9); xV.style.transform = P(540, lerp(1500, 1200, vk)) + ` rotate(${lerp(10, 2, vk)}deg)`; xV.style.opacity = clamp(vk * 2);
+      const vt = spring(t - 18.5, 16, .5);
+      on(xVTag, t > 18.45); xVTag.style.transform = P(780, 880) + ` rotate(-6deg) scale(${lerp(2, 1, vt) * clamp(vt * 2)})`;
+    }
+    floodJ(t);
+    end(t);
+    overlays(t, bgc);
+    caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_etapes.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  [.3, .6, .9, 1.2].forEach((x, i) => { s.tone(x, .2, 'sine', 120 + i * 30, 60, .5); s.pop(x, 400 + i * 120, .12); });
+  s.impact(1.23, .6); s.whoosh(1.9, .3, .2);
+  ST.forEach((x, i) => { s.whoosh(x - .05, .35, .15); s.tone(x, .25, 'sine', 300 + i * 90, 900 + i * 120, .25, .005); s.pop(x + .02, 1200 + i * 150, .15); });
+  s.whoosh(3.5, .6, .25, .5); s.tick(5.7, 1600, .2); s.pop(5.7, 900, .25);
+  s.shutter(7.2); [7.1, 7.25, 7.4].forEach((x, i) => s.pop(x, 800 + i * 140, .18));
+  s.pop(9.6, 800, .25); s.ding(9.8, .14); s.pop(11.3, 700, .3); s.whoosh(12.4, 1.8, .2); s.pop(13.4, 900, .25);
+  s.whooshDown(14.55, .35, .3); s.stamp(14.7, .5); s.whoosh(15.5, .4, .25); s.pop(16.99, 700, .3); s.impact(16.99, .5);
+  s.whoosh(17.97, .4, .25); s.cash(18.5, .3); s.impact(18.5, .5);
+  s.riser(19.3, 20.2, .2); s.impact(20.2, .85); s.whoosh(20.25, .5, .3); s.pop(21.85, 700, .3); s.ringout(22.2);
+};
+init();
+</script>
+</body></html>

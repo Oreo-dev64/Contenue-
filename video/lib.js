@@ -44,6 +44,7 @@ const ICON = {
   hood: ['0 0 200 200', (c, d) => `<path d="M62 38 Q100 22 138 38 L178 66 Q186 72 182 80 L166 112 Q162 118 156 114 L148 108 L148 182 Q148 188 142 188 L58 188 Q52 188 52 182 L52 108 L44 114 Q38 118 34 112 L18 80 Q14 72 22 66 Z" fill="${c}"/><path d="M74 40 Q100 84 126 40" stroke="${d}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M72 140 H128 L136 170 H64 Z" fill="${d}" opacity=".45"/><path d="M92 64 V96 M108 64 V96" stroke="${d}" stroke-width="5" stroke-linecap="round"/>`],
   bag: ['0 0 200 200', (c, d) => `<path d="M68 76 Q68 30 100 30 Q132 30 132 76" stroke="${c}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M40 72 H160 L172 176 Q173 186 163 186 H37 Q27 186 28 176 Z" fill="${c}"/><rect x="84" y="96" width="32" height="22" rx="5" fill="${d}"/><path d="M44 130 H156" stroke="${d}" stroke-width="4" opacity=".5"/>`],
   tee: ['0 0 200 200', (c, d) => `<path d="M64 28 L84 20 Q100 38 116 20 L136 28 L178 58 L158 90 L142 80 L142 184 L58 184 L58 80 L42 90 L22 58 Z" fill="${c}"/><path d="M84 20 Q100 38 116 20" stroke="${d}" stroke-width="6" fill="none"/>`],
+  jacket: ['0 0 200 200', (c, d) => `<path d="M70 26 L100 40 L130 26 L170 50 Q180 56 182 68 L188 176 Q188 184 180 184 L152 184 L150 96 L148 184 L52 184 L50 96 L48 184 L20 184 Q12 184 12 176 L18 68 Q20 56 30 50 Z" fill="${c}"/><path d="M70 26 L84 54 L100 40 L116 54 L130 26" stroke="${d}" stroke-width="5" fill="none" stroke-linejoin="round"/><path d="M100 44 V184" stroke="${d}" stroke-width="4"/><rect x="108" y="70" width="30" height="40" rx="4" fill="${d}" opacity=".5"/><path d="M60 130 L64 160 M136 130 L140 160" stroke="${d}" stroke-width="4" opacity=".6"/>`],
   pants: ['0 0 200 240', (c, d) => `<path d="M48 14 H152 L164 226 Q164 232 158 232 H118 Q112 232 112 226 L100 92 L88 226 Q88 232 82 232 H42 Q36 232 36 226 Z" fill="${c}"/><rect x="48" y="14" width="104" height="18" fill="${d}"/><path d="M100 32 V72" stroke="${d}" stroke-width="4"/><path d="M60 150 L80 170 M64 176 L84 196 M124 160 L144 180" stroke="${d}" stroke-width="4" opacity=".6"/>`],
 };
 const icon = (k, c, d, w) => { const [vb, f] = ICON[k]; const [, , vw, vh] = vb.split(' ').map(Number); return svg(vb, f(c, d), w, w * vh / vw); };
@@ -214,4 +215,76 @@ function setupPreview(DUR, audioSrc) {
 async function loadFonts() {
   await Promise.all(['72px AB', '400 40px IT', '700 40px IT', 'italic 60px IS', '30px JM'].map(f => document.fonts.load(f, 'ÀÉ€✓0')));
   await document.fonts.ready;
+}
+
+// ---------- Kevin (personnage récurrent) ----------
+function KEVIN(parent) {
+  const kev = E(parent, 'width:400px;height:520px', svg('0 0 400 520', `
+    <ellipse cx="200" cy="510" rx="150" ry="12" fill="rgba(0,0,0,.35)"/>
+    <path d="M70 520 C70 400 120 350 200 350 C280 350 330 400 330 520 Z" fill="#3A3F55"/>
+    <path d="M140 362 Q200 424 260 362" stroke="#262A3A" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M182 384 V444 M218 384 V444" stroke="#EDEBE4" stroke-width="6" stroke-linecap="round"/>
+    <rect x="176" y="296" width="48" height="66" rx="20" fill="#E0B48C"/>
+    <circle cx="94" cy="226" r="20" fill="#E8BC94"/><circle cx="306" cy="226" r="20" fill="#E8BC94"/>
+    <circle cx="200" cy="215" r="108" fill="#F2C9A0"/>
+    <ellipse cx="146" cy="262" rx="18" ry="10" fill="#F09A8A" opacity=".55"/><ellipse cx="254" cy="262" rx="18" ry="10" fill="#F09A8A" opacity=".55"/>
+    <path d="M92 210 C86 120 140 92 205 94 C276 96 318 140 310 212 C296 168 258 150 206 152 C150 152 112 176 92 210 Z" fill="#2B1E16"/>
+    <g class="eL" transform="translate(160 226)"><ellipse rx="13" ry="15" fill="#0B0B10"/><circle cx="4" cy="-5" r="4" fill="#fff"/></g>
+    <g class="eR" transform="translate(240 226)"><ellipse rx="13" ry="15" fill="#0B0B10"/><circle cx="4" cy="-5" r="4" fill="#fff"/></g>
+    <path class="bL" d="M138 192 L182 188" stroke="#2B1E16" stroke-width="10" stroke-linecap="round"/>
+    <path class="bR" d="M218 188 L262 192" stroke="#2B1E16" stroke-width="10" stroke-linecap="round"/>
+    <path class="mo" d="M168 278 Q200 300 232 278" stroke="#7A3B2E" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <ellipse class="om" cx="200" cy="284" rx="20" ry="26" fill="#5A2320" opacity="0"/>
+    <g class="gl" opacity="0"><rect x="118" y="204" width="76" height="44" rx="10" fill="#0B0B10"/><rect x="206" y="204" width="76" height="44" rx="10" fill="#0B0B10"/><path d="M194 220 H206" stroke="#0B0B10" stroke-width="8"/><path d="M128 212 L146 212" stroke="#fff" stroke-width="5" opacity=".6"/></g>
+  `, 400, 520), 'L');
+  const q = c => kev.querySelector('.' + c);
+  const eL = q('eL'), eR = q('eR'), bL = q('bL'), bR = q('bR'), mo = q('mo'), om = q('om'), gl = q('gl'), sv = kev.querySelector('svg');
+  // m : sourire (+1) / triste (-1) ; br : sourcils tristes ; shock : bouche ouverte ; glasses : lunettes de soleil ; gray : gris
+  kev.pose = ({ x = 540, y = 900, s = 1, rot = 0, m = .7, br = 0, shock = 0, blink = 1, gray = 0, glasses = 0, look = 0 } = {}) => {
+    kev.style.transform = P(x, y) + ` scale(${s}) rotate(${rot}deg)`;
+    sv.style.filter = gray ? `grayscale(${gray}) brightness(${1 - .15 * gray})` : '';
+    const es = 1 + .4 * shock;
+    eL.setAttribute('transform', `translate(160 ${226 + look}) scale(${es} ${es * blink})`);
+    eR.setAttribute('transform', `translate(240 ${226 + look}) scale(${es} ${es * blink})`);
+    bL.setAttribute('transform', `translate(0 ${-16 * shock}) rotate(${-br} 160 190)`);
+    bR.setAttribute('transform', `translate(0 ${-16 * shock}) rotate(${br} 240 190)`);
+    mo.setAttribute('d', `M168 ${282 - 6 * m} Q200 ${282 + 22 * m} 232 ${282 - 6 * m}`);
+    mo.style.opacity = shock > .5 ? 0 : 1; om.setAttribute('opacity', shock > .5 ? 1 : 0);
+    gl.setAttribute('opacity', glasses); gl.setAttribute('transform', `translate(0 ${(1 - glasses) * -60})`);
+  };
+  return kev;
+}
+
+// ---------- carte de fin commune (fond vert) : « LE FOURNISSEUR » + 14€ 3D + catégories + LIEN EN BIO ----------
+function EndCard(parent, t0, { tPill = t0 + .45 } = {}) {
+  const J = E(parent, 'perspective:1800px', '', 'full');
+  const le = MW(J, 'LE FOURNISSEUR', `font:84px AB;color:${C.ink};letter-spacing:-.02em`);
+  const ext = EXT(J, '14€', 400, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const sh = E(J, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)`, '', 'L');
+  const cats = Tx(J, '', `font:500 30px JM;color:${C.ink};letter-spacing:.12em`);
+  const rule = E(J, `height:3px;background:${C.ink}`, '', 'L');
+  const pill = E(J, `display:flex;align-items:center;gap:22px;background:${C.ink};border-radius:70px;padding:26px 50px 26px 40px;white-space:nowrap;width:max-content`, `<svg viewBox="0 0 40 40" width="48" height="48"><path d="M20 34 V8 M8 19 L20 7 L32 19" stroke="${C.lime}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:62px AB;color:${C.lime};letter-spacing:-.01em">LIEN EN BIO</span>`, 'L');
+  const arr = pill.querySelector('svg');
+  return t => {
+    on(J, t >= t0 - .05); if (t < t0 - .05) return;
+    le.style.transform = P(540, 330); le.reveal(t, t0, .025);
+    const k = spring(t - t0, 9, .62), sway = Math.sin((t - t0 - .4) * 1.7) * 16 * seg(t, t0 + .4, t0 + .9);
+    ext.style.transform = `translate(540px,760px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+    sh.style.transform = P(540, 1010) + ` scale(${k})`;
+    const c = 'LUXE · RUNNING · STREETWEAR · SNEAKERS';
+    cats.textContent = c.slice(0, Math.floor(seg(t, t0 + .5, t0 + 1.3) * c.length)); cats.style.transform = P(540, 1105);
+    rule.style.width = `${760 * easeOut(seg(t, t0 + .6, t0 + 1.2))}px`; rule.style.transform = P(540, 1170);
+    on(pill, t > tPill - .05); pill.style.transform = P(540, 1300) + ` scale(${spring(t - tPill, 14, .55)})`;
+    arr.style.transform = `translateY(${Math.sin(t * 9) * 6}px)`;
+  };
+}
+// cercle qui envahit l'écran (transition)
+function Flood(parent, color, x, y, ta, tb) {
+  const f = E(parent, `width:100px;height:100px;border-radius:50%;background:${color}`, '', 'L');
+  return t => { on(f, win(t, ta - .05, tb + .08)); if (win(t, ta - .05, tb + .08)) f.style.transform = P(x, y) + ` scale(${48 * easeIn(seg(t, ta, tb))})`; };
+}
+// recadrage d'une capture (background-image)
+function Crop(parent, img, iw, ih, ox, oy, ow, oh, w, css = '') {
+  const s = w / ow;
+  return E(parent, `width:${w}px;height:${oh * s}px;background-image:url(${img});background-size:${iw * s}px ${ih * s}px;background-position:${-ox * s}px ${-oy * s}px;${css}`, '', 'L');
 }

@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kevin le retour — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 6 — « KEVIN, LE RETOUR » (veste Under Armour)   voix : voix_kevin2.mp3, 22.2 s
+   0.00  S1  Cadre VHS « PRÉCÉDEMMENT » : Kevin triste sous la pluie, ticket 300+ €  — rembobinage, glitch
+   4.00  S2  Flood vert : Kevin sourit, lunettes de soleil qui tombent, 14 € 3D     — impact, pop
+   6.72  S3  Colis 3D qui s'ouvre : la vraie veste sort, étiquette 25 €             — whoosh, pops
+  10.36  S4  Téléphone 3D + annonce réelle : loupe sur 130 €, puis ♥ 22              — ticks, impact
+  14.75  S5  « ≈ 100 € de marge » sur une seule veste                              — caisse
+  17.84  S6  Jauge « fournisseur 14 € » qui déborde → tampon REMBOURSÉ             — stamp
+  19.68  S7  Kevin à lunettes : « KEVIN A COMPRIS. » → « ET TOI ? » vers la caméra  — impact
+  21.30  S8  Fin : LIEN EN BIO                                                    — ring-out
+   ===================================================================== */
+const DUR = 24;
+const IMG = "assets/vinted_ua.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("kevin2");
+const GROUPS = makeGroups(WORDS);
+const BG = [[0, C.ink], [4.2, C.lime], [6.95, C.blue], [10.55, C.ink], [14.95, C.lime], [18.0, C.blue], [19.68, C.ink], [21.5, C.lime]];
+const HITS = [[2.8, 12], [4.2, 22], [4.45, 10], [5.64, 18], [7.84, 14], [9.28, 10], [11.68, 16], [15.52, 20], [18.88, 20], [20.64, 22], [21.5, 16], [21.9, 16]];
+const SCENES = [[0, 'PRÉCÉDEMMENT'], [4.0, 'ÉPISODE 2'], [6.72, '1ʳᵉ COMMANDE'], [10.36, 'VINTED'], [14.75, 'LA MARGE'], [17.84, 'RENTABILISÉ'], [19.68, 'ET TOI ?'], [21.3, 'FOURNISSEUR 14 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(61);
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, '', '', 'full');
+
+  // ===== S1 : précédemment (VHS) =====
+  const A = E(world, '', '', 'full');
+  const vhs = E(A, `width:900px;height:1000px;border-radius:30px;overflow:hidden;background:#15161C;border:4px solid rgba(237,235,228,.25)`, '', 'L');
+  const rain = Array.from({ length: 40 }, () => ({ e: E(vhs, `width:3px;height:${70 + R() * 70}px;background:linear-gradient(transparent,rgba(190,205,230,.5))`, '', 'L'), x: R() * 900, sp: 1300 + R() * 800, o: R() * 1200 }));
+  const kevA = KEVIN(vhs);
+  const scan = E(vhs, `position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 2px,transparent 2px 6px)`);
+  const vLab = Tx(vhs, '◀◀ PRÉCÉDEMMENT', `font:500 34px JM;letter-spacing:.2em;color:${C.cream};left:40px;top:40px`);
+  const vRec = Tx(vhs, 'ÉP. 01', `font:500 30px JM;letter-spacing:.2em;color:${C.red};left:740px;top:44px`);
+  const receipt = E(A, `width:max-content;white-space:nowrap;padding:30px 34px;background:#F7F5EF;border-radius:6px;box-shadow:0 30px 60px rgba(0,0,0,.5);font:500 24px JM;color:#333`, `<div style="font:28px AB;letter-spacing:.06em;text-align:center">ANCIEN FOURNISSEUR</div><div style="border-top:3px dashed #999;margin:14px 0"></div><div style="font:20px JM;opacity:.6">TOTAL</div><div style="font:96px AB;color:${C.red};letter-spacing:-.03em;line-height:1">300+ €</div>`, 'L');
+  const aT = MW(A, 'TU TE SOUVIENS ?', `font:96px AB;color:${C.cream};letter-spacing:-.03em`);
+
+  // ===== S2 : il a pris le mien =====
+  const B = E(world, 'perspective:1800px', '', 'full');
+  const bT1 = MW(B, 'KEVIN A PRIS', `font:96px AB;color:${C.ink};letter-spacing:-.03em`);
+  const bT2 = MW(B, 'LE MIEN', `font:150px AB;color:${C.ink};letter-spacing:-.04em`);
+  const kevB = KEVIN(B);
+  const ext14 = EXT(B, '14€', 200, 20, 60, C.ink, '#3E4A12', '#1C2208');
+  const floodB = Flood(world, C.lime, 540, 960, 3.95, 4.2);
+
+  // ===== S3 : colis + veste =====
+  const Cc = E(world, 'perspective:1400px', '', 'full');
+  const cT = MW(Cc, 'SA 1ʳᵉ COMMANDE', `font:100px AB;color:#fff;letter-spacing:-.03em`);
+  const box = BOX(Cc, 300, undefined, 'FOURNISSEUR');
+  const jacket = Crop(Cc, IMG, IW, IH, 35, 563, 550, 927, 330, `border-radius:26px;border:8px solid #fff;box-shadow:0 30px 60px rgba(0,0,0,.35)`);
+  const jLab = Tx(Cc, 'VESTE UNDER ARMOUR', `font:500 30px JM;letter-spacing:.2em;color:#fff`);
+  const tag25 = E(Cc, `width:210px;height:290px;background:${C.lime};clip-path:polygon(30% 0,70% 0,100% 16%,100% 100%,0 100%,0 16%);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transform-origin:50% -100px`, `<div style="width:26px;height:26px;border-radius:50%;background:${C.blue};margin-bottom:12px"></div><div style="font:500 20px JM;letter-spacing:.2em;color:${C.ink}">FOURNISSEUR</div><div style="font:86px AB;color:${C.ink};letter-spacing:-.04em;line-height:1">25 €</div>`, 'L');
+  const kevC = KEVIN(Cc);
+  const shT = E(world, `width:1080px;height:980px;background:${C.ink}`, '', 'L');
+  const shB = E(world, `width:1080px;height:980px;background:${C.ink}`, '', 'L');
+
+  // ===== S4 : annonce =====
+  const D = E(world, 'perspective:1700px', '', 'full');
+  const dKick = Tx(D, 'SUR VINTED', `font:500 32px JM;letter-spacing:.3em;color:${C.cream}`);
+  const dPrice = E(D, 'display:flex;align-items:baseline;white-space:nowrap;width:max-content', '', 'L');
+  const dNum = E(dPrice, `font:240px AB;color:${C.lime};letter-spacing:-.05em;line-height:1`, '0');
+  E(dPrice, `font:150px AB;color:${C.lime};margin-left:20px;line-height:1`, '€');
+  const dFav = E(D, 'display:flex;align-items:center;gap:20px;white-space:nowrap;width:max-content', `<svg viewBox="0 0 100 90" width="120" height="108"><path d="M50 86 C20 62 4 46 4 26 C4 12 15 2 28 2 C38 2 45 8 50 16 C55 8 62 2 72 2 C85 2 96 12 96 26 C96 46 80 62 50 86 Z" fill="${C.red}"/></svg><span style="font:150px AB;color:${C.cream};letter-spacing:-.04em;line-height:1">22</span>`, 'L');
+  const ph = E(D, 'width:500px;height:1060px', '', 'L p3');
+  E(ph, `position:absolute;inset:0;background:#0E0E14;border-radius:74px;box-shadow:0 60px 100px rgba(0,0,0,.6), inset 0 0 0 3px #34343f`);
+  const scr = E(ph, `position:absolute;left:14px;top:14px;width:472px;height:1032px;border-radius:60px;overflow:hidden;background:#fff`, `<img src="${IMG}" style="width:472px;display:block">`);
+  const ring = E(D, `border:6px solid ${C.lime};border-radius:18px`, '', 'L');
+  const lineEl = E(D, `height:4px;background:${C.lime};transform-origin:0 50%`, '', 'L');
+  const lens = E(D, `width:380px;height:380px;border-radius:50%;border:8px solid ${C.lime};background-color:#fff;background-image:url(${IMG});background-size:${IW}px ${IH}px;box-shadow:0 30px 60px rgba(0,0,0,.5)`, '', 'L');
+  const floodE = Flood(world, C.lime, 540, 1075, 14.55, 14.95);
+
+  // ===== S5 : marge =====
+  const Ee = E(world, '', '', 'full');
+  const eEq = Tx(Ee, '130 € − 25 €', `font:500 44px JM;letter-spacing:.1em;color:${C.ink}`);
+  const eEnv = MW(Ee, 'environ', `font:italic 120px IS;color:${C.ink}`);
+  const eNum = Tx(Ee, '+0 €', `font:300px AB;color:${C.ink};letter-spacing:-.06em`);
+  const eMarge = MW(Ee, 'DE MARGE', `font:110px AB;color:${C.ink};letter-spacing:-.03em`);
+  const eOne = E(Ee, `display:flex;align-items:center;gap:20px;background:${C.ink};border-radius:60px;padding:12px 34px 12px 12px;width:max-content`, '', 'L');
+  Crop(eOne, IMG, IW, IH, 35, 563, 550, 927, 70, 'position:relative;border-radius:50%');
+  E(eOne, `font:44px AB;color:${C.lime};white-space:nowrap`, 'SUR UNE SEULE VESTE');
+  const wF = E(world, `width:2400px;height:1920px;background:${C.blue};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+
+  // ===== S6 : remboursé =====
+  const F = E(world, '', '', 'full');
+  const fT = MW(F, 'SON FOURNISSEUR', `font:96px AB;color:#fff;letter-spacing:-.03em`);
+  const gauge = E(F, `width:860px;height:150px;border-radius:75px;background:rgba(11,11,16,.35);overflow:hidden;border:5px solid #fff`, '', 'L');
+  const gFill = E(gauge, `height:100%;width:0;background:${C.lime};border-radius:75px`);
+  const gLab = Tx(F, '', `font:60px AB;color:${C.ink};letter-spacing:-.02em`);
+  const gX = Tx(F, '×7', `font:220px AB;color:${C.lime};letter-spacing:-.05em`);
+  const stamp = Tx(F, 'REMBOURSÉ ✓', `font:118px AB;color:#fff;border:12px solid #fff;padding:12px 36px 4px;border-radius:24px;background:rgba(11,11,16,.2)`);
+
+  // ===== S7 : et toi ? =====
+  const G7 = E(world, '', '', 'full');
+  const gK = MW(G7, 'KEVIN A COMPRIS.', `font:100px AB;color:${C.cream};letter-spacing:-.03em`);
+  const kevG = KEVIN(G7);
+  const gToi = Tx(G7, 'ET TOI ?', `font:240px AB;color:${C.lime};letter-spacing:-.05em`);
+  const floodJ = Flood(world, C.lime, 540, 960, 21.1, 21.5);
+  const end = EndCard(world, 21.5, { tPill: 21.9 });
+
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES });
+  const caps = Captions(stage, GROUPS, { hideAfter: 21.4 });
+
+  const pS = .82, PX = 540, PY = 1075;
+  const tgt = (ox, oy) => [PX + (14 + ox * 472 / IW - 250) * pS, PY + (14 + oy * 472 / IW - 530) * pS];
+  const blinkAt = t => [1.0, 5.0, 8.6, 13.2, 20.1].some(b => Math.abs(t - b) < .07) ? .12 : 1;
+
+  window.seek = function (T) {
+    const t = clamp(T, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+
+    // ---------- S1 ----------
+    on(A, t < 4.25);
+    if (t < 4.25) {
+      const vk = spring(t - .02, 12, .7), out = easeIn(seg(t, 3.85, 4.15));
+      const jit = (Math.floor(t * 20) % 7 === 0) ? (rng(Math.floor(t * 20))() - .5) * 20 : 0;
+      vhs.style.transform = P(540 + jit, 900) + ` scale(${lerp(.6, 1, vk) * (1 - out * .2)}) rotate(${(1 - vk) * -6}deg)`;
+      vhs.style.filter = `grayscale(.85) contrast(1.1)`;
+      rain.forEach(r => r.e.style.transform = `translate(${r.x}px,${((t * r.sp + r.o) % 1300) - 150}px) rotate(12deg)`);
+      kevA.pose({ x: 450, y: 620, s: 1.15, m: -1, br: 17, blink: blinkAt(t), look: 6 });
+      vLab.style.opacity = (Math.floor(t * 2) % 2) ? 1 : .4;
+      aT.style.transform = P(540, 300); aT.reveal(t, .05, .03);
+      const rk = spring(t - 2.8, 14, .55);
+      on(receipt, t > 2.75);
+      receipt.style.transform = P(lerp(1400, 760, rk), 1150) + ` rotate(${lerp(30, 8, rk)}deg)`;
+    }
+
+    // ---------- S2 ----------
+    floodB(t);
+    on(B, win(t, 4.1, 7.0));
+    if (win(t, 4.1, 7.0)) {
+      bT1.style.transform = P(540, 300); bT1.reveal(t, 4.15, .025);
+      bT2.style.transform = P(540, 430); bT2.reveal(t, 4.76, .04);
+      const kk = spring(t - 4.15, 12, .55);
+      kevB.pose({ x: 540, y: 1080, s: 1.25 * kk, m: 1, glasses: spring(t - 4.45, 16, .55), blink: blinkAt(t), rot: Math.sin(t * 3) * 3 });
+      const ek = spring(t - 5.5, 10, .6);
+      on(ext14, t > 5.4);
+      ext14.style.transform = `translate(780px,700px) rotateX(10deg) rotateY(${lerp(-540, -18, ek) + Math.sin(t * 1.8) * 12}deg) scale(${lerp(.2, 1, ek)})`;
+    }
+    const fl = Math.max(win(t, 4.2, 4.35) ? .4 * (1 - seg(t, 4.2, 4.35)) : 0, win(t, 20.64, 20.8) ? .3 * (1 - seg(t, 20.64, 20.8)) : 0);
+    on(flash, fl > 0); flash.style.opacity = fl;
+
+    // ---------- S3 ----------
+    on(Cc, win(t, 6.7, 10.6));
+    if (win(t, 6.7, 10.6)) {
+      // transition : volet bleu qui balaie
+      cT.style.transform = P(540, 300); cT.reveal(t, 6.75, .025);
+      const bk = spring(t - 6.8, 10, .6), op = spring(t - 7.84, 11, .62);
+      let bump = Math.sin(Math.max(0, t - 7.7) * 30) * 12 * (1 - seg(t, 7.7, 8.1));
+      box.style.transform = `translate(540px,${1200 + bump + op * 60}px) rotateX(-24deg) rotateY(${30 + Math.sin(t * 1.2) * 6}deg) scale(${bk * (1 - op * .25)})`;
+      on(jacket, t > 7.8);
+      jacket.style.transform = P(540, lerp(1150, 700, op)) + ` rotate(${lerp(20, -3, op) + Math.sin(t * 1.5) * 2}deg) scale(${lerp(.2, 1, op)})`;
+      on(jLab, t > 8.4); jLab.style.transform = P(540, 1020); jLab.style.opacity = seg(t, 8.45, 8.7);
+      const tk = spring(t - 9.28, 14, .5), sw = Math.sin((t - 9.28) * 4) * 14 * Math.exp(-(t - 9.28) * 1.2);
+      on(tag25, t > 9.2);
+      tag25.style.transform = `translate(${760 - 105}px,${470 + (1 - tk) * -500}px) rotate(${12 + sw}deg)`;
+      const kc = spring(t - 7.0, 12, .6);
+      kevC.pose({ x: 190, y: 1230, s: .6 * kc, m: 1, glasses: 1, rot: -8 + Math.sin(t * 6) * 4 });
+    }
+    on(shT, win(t, 10.25, 10.6)); on(shB, win(t, 10.25, 10.6));
+    if (win(t, 10.25, 10.6)) { const k = easeIn(seg(t, 10.28, 10.55)); shT.style.transform = `translate(0,${lerp(-980, 0, k)}px)`; shB.style.transform = `translate(0,${lerp(1920, 940, k)}px)`; }
+
+    // ---------- S4 ----------
+    on(D, win(t, 10.5, 14.95));
+    if (win(t, 10.5, 14.95)) {
+      dKick.style.transform = P(540, 300); dKick.style.opacity = seg(t, 10.55, 10.8) * (1 - seg(t, 12.5, 12.7));
+      const pk = spring(t - 11.68, 16, .5), pout = easeIn(seg(t, 12.55, 12.8));
+      on(dPrice, t > 11.6 && t < 12.85);
+      dNum.textContent = String(Math.round(lerp(0, 130, easeOut(seg(t, 11.68, 12.1)))));
+      dPrice.style.transform = P(540, 440 - pout * 300) + ` scale(${lerp(1.6, 1, pk) * (1 - pout)})`;
+      const fk = spring(t - 12.7, 16, .55);
+      on(dFav, t > 12.65); dFav.style.transform = P(540, 440) + ` scale(${lerp(1.5, 1, fk) * clamp(fk * 2)})`;
+      const ek = spring(t - 10.55, 8, .75);
+      ph.style.transform = `translate(${PX}px,${lerp(2300, PY, ek)}px) translate(-50%,-50%) rotateY(${lerp(70, 0, ek) + Math.sin(t * 1.4) * 3}deg) rotateZ(${lerp(-12, 0, ek)}deg) scale(${pS})`;
+      const L = t < 12.68 ? [11.68, 167, 1930, 820, 1200, 200, 70] : [12.68, 994, 1383, 850, 760, 220, 120];
+      const lOn = t > 11.6 && t < 14.6;
+      on(lens, lOn); on(ring, lOn); on(lineEl, lOn);
+      if (lOn) {
+        const [t0, ox, oy, lx, ly, bw, bh] = L, lk = spring(t - t0, 14, .6), lout = easeIn(seg(t, 14.3, 14.55));
+        const [tx, ty] = tgt(ox, oy), sc = pS * 472 / IW;
+        lens.style.transform = P(lx, ly) + ` scale(${lk * (1 - lout)})`;
+        lens.style.backgroundPosition = `${-(ox - 182)}px ${-(oy - 182)}px`;
+        ring.style.width = `${bw * sc + 26}px`; ring.style.height = `${bh * sc + 22}px`;
+        ring.style.transform = P(tx, ty) + ` scale(${lk * (1 - lout)})`;
+        const dx = lx - tx, dy = ly - ty, len = Math.hypot(dx, dy) - 190;
+        lineEl.style.width = `${Math.max(0, len * easeOut(seg(t, t0 + .05, t0 + .3)) * (1 - lout))}px`;
+        lineEl.style.transform = `translate(${tx}px,${ty}px) rotate(${Math.atan2(dy, dx)}rad)`;
+      }
+    }
+    floodE(t);
+
+    // ---------- S5 ----------
+    on(Ee, win(t, 14.9, 18.1));
+    if (win(t, 14.9, 18.1)) {
+      eEq.style.transform = P(540, 330); eEq.style.opacity = seg(t, 14.95, 15.2);
+      on(eEnv, t > 14.95); eEnv.style.transform = P(540, 480); eEnv.reveal(t, 15.0, .04);
+      const nk = spring(t - 15.52, 15, .5);
+      on(eNum, t > 15.45);
+      eNum.textContent = `+${Math.round(lerp(0, 100, easeOut(seg(t, 15.52, 15.9))))} €`;
+      eNum.style.transform = P(540, 730) + ` scale(${lerp(1.8, 1, nk)})`;
+      on(eMarge, t > 15.9); eMarge.style.transform = P(540, 940); eMarge.reveal(t, 15.95, .03);
+      const ok = spring(t - 16.56, 14, .6);
+      on(eOne, t > 16.5); eOne.style.transform = P(540, 1140) + ` scale(${ok})`;
+    }
+    on(wF, win(t, 17.65, 18.05));
+    if (win(t, 17.65, 18.05)) wF.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, 17.7, 17.98)))}px,0)`;
+
+    // ---------- S6 ----------
+    on(F, win(t, 17.95, 19.75));
+    if (win(t, 17.95, 19.75)) {
+      fT.style.transform = P(540, 330); fT.reveal(t, 17.9, .025);
+      gauge.style.transform = P(540, 760) + ` scale(${spring(t - 18.0, 14, .7)})`;
+      const p = easeOut(seg(t, 18.1, 18.85));
+      const n = Math.round(lerp(0, 100, p));
+      gFill.style.width = `${Math.min(100, n / 14 * 100)}%`;
+      gLab.textContent = `+${n} € / 14 €`;
+      gauge.style.boxShadow = n >= 14 ? `0 0 ${20 + 30 * Math.sin(t * 12) ** 2}px ${C.lime}` : 'none';
+      gLab.style.transform = P(540, 760);
+      const xk = spring(t - 18.85, 16, .5);
+      on(gX, t > 18.8); gX.style.transform = P(540, 1010) + ` scale(${lerp(2, 1, xk)}) rotate(-6deg)`; gX.style.opacity = clamp(xk * 2);
+      const sk = spring(t - 18.88, 16, .5);
+      on(stamp, t > 18.85); stamp.style.transform = P(540, 560) + ` rotate(-6deg) scale(${lerp(2.4, 1, sk)})`; stamp.style.opacity = clamp(sk * 2);
+    }
+
+    // ---------- S7 ----------
+    on(G7, win(t, 19.6, 21.55));
+    if (win(t, 19.6, 21.55)) {
+      gK.style.transform = P(540, 330); gK.reveal(t, 19.68, .025);
+      const zoom = ease(seg(t, 20.6, 21.0));
+      kevG.pose({ x: 540, y: lerp(1000, 1100, zoom), s: lerp(1.3, 2.1, zoom) * spring(t - 19.65, 12, .6), m: 1, glasses: 1, rot: Math.sin(t * 3) * 3, blink: blinkAt(t) });
+      const tk = spring(t - 20.64, 16, .45);
+      on(gToi, t > 20.6); gToi.style.transform = P(540, 560) + ` scale(${lerp(2.6, 1, tk)}) rotate(${(1 - tk) * -8}deg)`; gToi.style.opacity = clamp(tk * 2);
+    }
+    floodJ(t);
+    end(t);
+    overlays(t, bgc);
+    caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_kevin2.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whooshDown(.1, .5, .3); s.glitch(.15, .12); for (let x = .2; x < .9; x += .06) s.tick(x, 600 + x * 400, .05);
+  s.whoosh(2.75, .35, .25, .4); s.stamp(2.9, .5);
+  s.riser(3.3, 4.2, .2); s.impact(4.2, .9); s.pop(4.45, 900, .3); s.ding(4.5, .12);
+  s.whoosh(5.4, .5, .3); s.impact(5.64, .6);
+  s.whoosh(6.75, .35, .3, -.5); s.stamp(6.9, .4); s.whoosh(7.8, .4, .3); s.pop(7.9, 600, .3); s.pop(8.45, 900, .2);
+  s.whooshDown(9.2, .3, .25); s.pop(9.32, 700, .3);
+  s.whoosh(10.25, .3, .25); s.stamp(10.55, .5); s.whoosh(10.8, .6, .25);
+  for (let x = 11.68; x < 12.1; x += .04) s.tick(x, 2000 + (x - 11.68) * 2500, .06); s.impact(11.9, .5);
+  for (let x = 12.7; x < 13.0; x += .05) s.pop(x, 900 + (x - 12.7) * 1500, .08);
+  s.riser(14.1, 14.95, .2); s.impact(14.95, .8);
+  for (let x = 15.52; x < 15.9; x += .04) s.tick(x, 1800 + (x - 15.52) * 2000, .06); s.cash(15.9, .3); s.pop(16.56, 800, .25);
+  s.whoosh(17.7, .3, .3, -.5); for (let x = 18.1; x < 18.85; x += .05) s.tick(x, 1200 + (x - 18.1) * 1500, .05);
+  s.stamp(18.88, .9); s.ding(19.0, .16);
+  s.whoosh(19.6, .3, .25); s.pop(19.9, 600, .2); s.impact(20.64, .9); s.whoosh(20.65, .4, .3);
+  s.riser(20.9, 21.5, .18); s.impact(21.5, .8); s.whoosh(21.55, .5, .3); s.pop(21.9, 700, .3); s.ringout(22.3);
+};
+init();
+</script>
+</body></html>
