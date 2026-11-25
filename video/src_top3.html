@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Top 3 des marges — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 11 — « TOP 3 DES MARGES »   voix : voix_top3.mp3, 24.7 s
+   0.00  S1  « TOP 3 » 3D + podium isométrique qui pousse                      — impacts
+   3.35  #3  Veste Nike ADV Therma-FIT : photo réelle, 30 € fournisseur, 135 € Vinted, ♥ 186 → se pose sur la marche 3
+  11.30  #2  Nike Running Berlin 2021 : 25 € → 320 € → marche 2
+  16.80  #1  Roulement de tambour, fond noir + projecteur : Zabuza gris 25 € → 400 € → marche 1, couronne
+  21.84  Fin : LIEN EN BIO
+   ===================================================================== */
+const DUR = 26.5;
+const IMGS = { adv: "assets/vinted_adv.png", berlin: "assets/vinted_berlin.png", zgris: "assets/vinted_zgris.png" }, IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("top3");
+const GROUPS = makeGroups(WORDS);
+const RANKS = [
+  { n: 3, name: 'VESTE NIKE ADV THERMA-FIT', img: 'adv', crop: [35, 535, 550, 927], ft: 6.56, fp: '30 €', vt: 8.01, vp: '135 €', ht: 9.54, h: '186', tIn: 3.35, tOut: 10.95, X: 575, H: 110 },
+  { n: 2, name: 'NIKE RUNNING BERLIN 2021', img: 'berlin', crop: [35, 570, 550, 924], ft: 14.21, fp: '25 €', vt: 15.14, vp: '320 €', tIn: 11.3, tOut: 16.6, X: 115, H: 170 },
+  { n: 1, name: 'ZABUZA GRIS', img: 'zgris', crop: [35, 554, 550, 925], ft: 19.07, fp: '25 €', vt: 20.25, vp: '400 €', tIn: 17.88, tOut: 21.3, X: 345, H: 250 },
+];
+const BG = [[0, C.blue], [16.8, C.ink], [21.2, C.blue], [22.1, C.lime]];
+const HITS = [[.3, 20], ...RANKS.flatMap(r => [[r.tIn, 18], [r.ft, 10], [r.vt, 14]]), [9.54, 10], [18.48, 30], [21.3, 20], [22.1, 16], [22.5, 16]];
+const SCENES = [[0, 'TOP 3'], [3.35, 'N°3'], [11.3, 'N°2'], [16.8, 'N°1'], [21.3, 'PODIUM'], [21.84, 'FOURNISSEUR 14 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(19);
+  const bg = E(stage, '', '', 'full');
+  const grid = E(stage, `left:-90px;top:-90px;width:1260px;height:2100px;background-image:linear-gradient(rgba(255,255,255,.07) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.07) 2px,transparent 2px);background-size:90px 90px`, '', 'L');
+  const spot = E(stage, `background:radial-gradient(ellipse 45% 38% at 50% 42%, rgba(255,255,255,.2), rgba(11,11,16,0) 70%)`, '', 'full');
+  const world = E(stage, 'perspective:1700px', '', 'full');
+
+  // intro
+  const tTop = EXT(world, 'TOP 3', 260, 22, 90, C.lime, '#5E7A16', '#1E2A05', '#9BCB2A');
+  const tK = Tx(world, 'DES PLUS GROSSES MARGES', `font:500 34px JM;letter-spacing:.24em;color:#fff`);
+  const tK2 = Tx(world, 'DE LA SEMAINE', `font:500 34px JM;letter-spacing:.24em;color:${C.lime}`);
+
+  // podium iso
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = document.createElementNS(NS, 'svg'); sv.setAttribute('width', 1080); sv.setAttribute('height', 1920); sv.style.cssText = 'position:absolute;left:0;top:0;overflow:visible';
+  world.appendChild(sv);
+  const poly = f => { const p = document.createElementNS(NS, 'polygon'); p.setAttribute('fill', f); sv.appendChild(p); return p; };
+  const order = [RANKS[1], RANKS[0], RANKS[2]].sort((a, b) => a.X - b.X);
+  const blocks = order.map(r => { const b = { r, top: poly(C.cream), fy: poly('#B9B6AC'), fx: poly('#8F8C83') }; b.num = document.createElementNS(NS, 'text'); b.num.textContent = r.n; b.num.setAttribute('font-family', 'AB'); b.num.setAttribute('font-size', '120'); b.num.setAttribute('text-anchor', 'middle'); b.num.setAttribute('dominant-baseline', 'central'); b.num.setAttribute('fill', C.ink); sv.appendChild(b.num); return b; });
+  const Wb = 230;
+
+  // cartes de rang
+  const cards = RANKS.map(r => {
+    const o = {};
+    o.badge = E(world, `width:150px;height:150px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:84px AB;color:${C.ink};box-shadow:0 14px 30px rgba(0,0,0,.3)`, `#${r.n}`, 'L');
+    o.name = Tx(world, r.name, `font:62px AB;color:#fff;letter-spacing:-.02em`);
+    const [ox, oy, ow, oh] = r.crop;
+    o.card = Crop(world, IMGS[r.img], IW, IH, ox, oy, ow, oh, 360, `border-radius:26px;border:8px solid #fff;box-shadow:0 30px 60px rgba(0,0,0,.4)`);
+    o.ft = E(world, `background:${C.lime};border-radius:28px;padding:16px 28px 10px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.35);width:max-content`, `<div style="font:500 20px JM;letter-spacing:.2em;color:${C.ink}">FOURNISSEUR</div><div style="font:96px AB;color:${C.ink};letter-spacing:-.04em;line-height:1">${r.fp}</div>`, 'L');
+    o.vt = E(world, `background:#fff;border-radius:28px;padding:16px 28px 10px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.35);width:max-content`, `<div style="font:500 20px JM;letter-spacing:.2em;color:${C.ink}">SUR VINTED</div><div style="font:96px AB;color:${C.ink};letter-spacing:-.04em;line-height:1">${r.vp}</div>`, 'L');
+    if (r.h) o.ht = E(world, 'display:flex;align-items:center;gap:14px;width:max-content;background:rgba(11,11,16,.75);border-radius:40px;padding:12px 26px 12px 16px', `<svg viewBox="0 0 100 90" width="70" height="63"><path d="M50 86 C20 62 4 46 4 26 C4 12 15 2 28 2 C38 2 45 8 50 16 C55 8 62 2 72 2 C85 2 96 12 96 26 C96 46 80 62 50 86 Z" fill="${C.red}"/></svg><span style="font:72px AB;color:#fff;line-height:1">${r.h}</span>`, 'L');
+    return o;
+  });
+  const drum = Tx(world, '#1', `font:420px AB;color:${C.lime};letter-spacing:-.06em`);
+  const crown = E(world, '', svg('0 0 120 80', `<path d="M8 72 L14 18 L40 44 L60 8 L80 44 L106 18 L112 72 Z" fill="#FFD23F" stroke="${C.ink}" stroke-width="5" stroke-linejoin="round"/>`, 150, 100), 'L');
+  const conf = Array.from({ length: 40 }, (_, i) => ({ e: E(world, `width:${18 + R() * 22}px;height:${8 + R() * 12}px;background:${[C.lime, '#fff', C.red, '#FFD23F'][i % 4]};border-radius:3px`, '', 'L'), a: R() * Math.PI * 2, d: 400 + R() * 500, r: R() * 900 }));
+  const fJ = Flood(world, C.lime, 540, 900, 21.84, 22.1);
+  const end = EndCard(world, 22.1, { tPill: 23.73 });
+
+  const overlays = Overlays(stage, { scenes: SCENES });
+  const caps = Captions(stage, GROUPS, { hideAfter: 23.7 });
+
+  const ox = 341;
+  window.seek = function (T) {
+    const t = clamp(T, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    on(grid, t < 22.1); grid.style.opacity = bgc === C.ink ? .3 : 1; grid.style.transform = `translate(${(t * 25) % 90}px,${(t * 15) % 90}px)`;
+    on(spot, win(t, 16.8, 21.3)); spot.style.opacity = seg(t, 16.8, 17.2) * (1 - seg(t, 21.0, 21.3)); spot.style.transform = `translateX(${Math.sin(t * 2.2) * 120 * (1 - seg(t, 17.6, 17.9))}px)`;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // intro
+    const iOut = easeIn(seg(t, 3.1, 3.4));
+    on(tTop, t < 3.45); on(tK, t < 3.45); on(tK2, t < 3.45);
+    const k = spring(t - .1, 9, .62);
+    tTop.style.transform = `translate(540px,${460 - iOut * 600}px) rotateX(12deg) rotateY(${lerp(-540, -14, k) + Math.sin(t * 1.6) * 10}deg) scale(${lerp(.2, 1, k)})`;
+    tK.style.transform = P(540, 650); tK.style.opacity = seg(t, .8, 1.1) * (1 - iOut);
+    tK2.style.transform = P(540, 710); tK2.style.opacity = seg(t, 1.4, 1.7) * (1 - iOut);
+    // podium : en bas, s'efface pendant les fiches
+    let down = 0;
+    RANKS.forEach(r => { down = Math.max(down, ease(seg(t, r.tIn - .1, r.tIn + .3)) * (1 - ease(seg(t, r.tOut - .55, r.tOut - .2)))); });
+    down = Math.max(down, win(t, 16.8, 17.9) ? ease(seg(t, 16.8, 17.1)) : 0);
+    const oy = 920 + down * 1400;
+    const pr = (X, Y, Z) => [ox + (X - Y) * .866, oy + (X + Y) * .5 - Z];
+    const pts = a => a.map(p => p.join(',')).join(' ');
+    on(sv, t < 22.15);
+    blocks.forEach((b, i) => {
+      const H = b.r.H * spring(t - .3 - i * .25, 12, .6), X0 = b.r.X - Wb / 2, Y0 = 0;
+      b.top.setAttribute('points', pts([pr(X0, Y0, H), pr(X0 + Wb, Y0, H), pr(X0 + Wb, Y0 + Wb, H), pr(X0, Y0 + Wb, H)]));
+      b.fy.setAttribute('points', pts([pr(X0, Y0 + Wb, H), pr(X0 + Wb, Y0 + Wb, H), pr(X0 + Wb, Y0 + Wb, 0), pr(X0, Y0 + Wb, 0)]));
+      b.fx.setAttribute('points', pts([pr(X0 + Wb, Y0, H), pr(X0 + Wb, Y0 + Wb, H), pr(X0 + Wb, Y0 + Wb, 0), pr(X0 + Wb, Y0, 0)]));
+      const filled = t >= b.r.tOut;
+      b.top.setAttribute('fill', filled ? C.lime : C.cream); b.fy.setAttribute('fill', filled ? '#9DCC2E' : '#B9B6AC'); b.fx.setAttribute('fill', filled ? '#7BA21F' : '#8F8C83');
+      const [cx, cy] = pr(b.r.X, Wb, H / 2);
+      b.num.setAttribute('transform', `translate(${cx} ${cy}) matrix(.866 .5 0 1 0 0)`); b.num.setAttribute('opacity', H > 60 ? 1 : 0);
+    });
+    // fiches
+    RANKS.forEach((r, i) => {
+      const o = cards[i], active = t >= r.tIn - .05, seated = t >= r.tOut;
+      const vis = active && t < 22.15;
+      on(o.card, vis);
+      const dk = spring(t - r.tIn - .1, 10, .65), land = ease(seg(t, r.tOut - .5, r.tOut));
+      const [sx2, sy2] = (() => { const H = r.H; const p = [ox + (r.X - Wb / 2 - Wb / 2) * .866 + 0, 0]; return [ox + (r.X - Wb / 2) * .866 + 0, 0]; })();
+      const seatTop = [ox + (r.X - Wb / 2) * .866, oy + (r.X + Wb / 2) * .5 - r.H];
+      const seat = [ox + (r.X - Wb / 2) * .866 + 0, seatTop[1]];
+      const sc = lerp(1, .4, land), cardH = 360 * r.crop[3] / r.crop[2];
+      const x = lerp(540, ox + (r.X - Wb / 2) * .866 + Wb * .0, land), y = lerp(780, seatTop[1] - cardH * .4 / 2 - 6, land);
+      o.card.style.transform = P(lerp(lerp(1400, 540, dk), x, land), y) + ` rotate(${lerp(lerp(15, -2, dk), 0, land) + (seated ? Math.sin(t * 2 + i) * 1.5 : 0)}deg) scale(${sc})`;
+      const detail = active && !seated && t < r.tOut - .45;
+      const bk = spring(t - r.tIn, 16, .5);
+      on(o.badge, detail); o.badge.style.transform = P(150, 330) + ` scale(${bk}) rotate(${(1 - bk) * -90}deg)`;
+      on(o.name, detail); o.name.style.transform = P(600, 330) + ` translateX(${(1 - spring(t - r.tIn - .15, 16, .7)) * 300}px)`; o.name.style.fontSize = r.name.length > 18 ? '46px' : '62px';
+      const fk = spring(t - r.ft, 16, .5), vk = spring(t - r.vt, 16, .5);
+      on(o.ft, detail && t > r.ft - .02); o.ft.style.transform = P(200, 1060) + ` rotate(-8deg) scale(${lerp(2, 1, fk) * clamp(fk * 2)})`;
+      on(o.vt, detail && t > r.vt - .02); o.vt.style.transform = P(880, 560) + ` rotate(7deg) scale(${lerp(2, 1, vk) * clamp(vk * 2)})`;
+      if (o.ht) { const hk = spring(t - r.ht, 16, .5); on(o.ht, detail && t > r.ht - .02); o.ht.style.transform = P(860, 1080) + ` scale(${hk})`; }
+      if (r.n === 1) { o.card.style.boxShadow = seated ? `0 0 0 6px ${C.lime},0 30px 60px rgba(0,0,0,.4)` : '0 30px 60px rgba(0,0,0,.4)'; }
+    });
+    // roulement #1
+    const dk = spring(t - 18.48, 14, .45);
+    on(drum, win(t, 16.8, 17.95)); drum.style.transform = P(540, 760) + ` scale(${t < 17.6 ? .6 + .05 * Math.sin(t * 40) : lerp(2.2, 1, dk)})`; drum.style.opacity = t < 17.6 ? .35 : 1;
+    const ck = spring(t - 21.3, 14, .5);
+    on(crown, t > 21.25 && t < 22.15);
+    const r1 = RANKS[2], sTop = oy + (r1.X + Wb / 2) * .5 - r1.H - 360 * r1.crop[3] / r1.crop[2] * .4 - 60;
+    crown.style.transform = P(ox + (r1.X - Wb / 2) * .866, sTop - (1 - ck) * 200) + ` rotate(${Math.sin(t * 3) * 6}deg)`;
+    conf.forEach(c => { const d = t - 21.3; on(c.e, d > 0 && d < 1.2); if (d > 0) { const kk = easeOut(seg(d, 0, 1)); c.e.style.transform = `translate(${540 + Math.cos(c.a) * c.d * kk}px,${700 + Math.sin(c.a) * c.d * kk + 500 * d * d}px) rotate(${c.r * d}deg)`; c.e.style.opacity = 1 - seg(d, .8, 1.2); } });
+    fJ(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_top3.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.2, .6, .3); s.impact(.6, .7); [.3, .55, .8].forEach((x, i) => { s.tone(x, .2, 'sine', 120 + i * 30, 60, .5); s.pop(x, 400 + i * 120, .12); });
+  RANKS.forEach((r, i) => { s.whoosh(r.tIn, .35, .3, .4); s.pop(r.tIn + .05, 600 + i * 120, .25); s.pop(r.ft, 800, .25); s.impact(r.ft, .3); s.cash(r.vt, .25); s.whooshDown(r.tOut - .3, .4, .25); s.stamp(r.tOut, .5); });
+  for (let x = 9.54; x < 9.9; x += .04) s.pop(x, 900 + (x - 9.54) * 1500, .08);
+  for (let x = 16.8; x < 17.6; x += .045) s.tone(x, .05, 'triangle', 180 + rng(Math.floor(x * 100))() * 60, 120, .22, .002);
+  s.riser(17.0, 17.6, .2); s.impact(17.65, .9); s.whoosh(17.9, .4, .25);
+  s.impact(21.3, .7); s.ding(21.35, .22); for (let i = 0; i < 6; i++) s.pop(21.35 + i * .06, 900 + i * 180, .12);
+  s.riser(21.5, 22.1, .18); s.impact(22.1, .8); s.whoosh(22.15, .5, .3); s.pop(23.73, 700, .3); s.ringout(24.0);
+};
+init();
+</script>
+</body></html>

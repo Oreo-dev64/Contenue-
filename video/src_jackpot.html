@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jackpot — Fournisseur 14€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 9 — « JACKPOT » (Zabuza gris)   voix : voix_jackpot.mp3
+   Les temps sont lus dans la transcription (wt) : la mise en scène suit la voix.
+   S1  Vraie photo 3D, « ZABUZA GRIS », étiquette NEUF                         — whoosh, impact
+   S2  Extrait réel de l'annonce, « 400 € » qui défile, ♥ 53                     — ticks
+   S3  Machine à sous : levier tiré, 3 rouleaux qui tournent → 2 · 5 · € → JACKPOT — cliquetis, jackpot
+   S4  Flood vert : « plus de 370 € de marge », sur un seul article              — caisse
+   S5  Fin : 14 € + sceau 100 % AUTHENTIQUE + LIEN EN BIO                       — stamp, ring-out
+   ===================================================================== */
+const IMG = "assets/vinted_zgris.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("jackpot");
+const GROUPS = makeGroups(WORDS);
+GROUPS.forEach(g => { const w = g.words; for (let i = 0; i + 2 < w.length; i++) if (w[i].w === '100' && w[i + 1].w === 'POUR' && /^100/.test(w[i + 2].w)) { w[i].w = '100 %'; w[i].e = w[i + 2].e; w.splice(i + 1, 2); } });
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2];
+const DUR = Math.ceil(LAST + 1.8);
+const T = { zab: wt('^Zabuza'), neuf: wt('^neuf'), quatre: wt('^quatre'), vinted: wt('^Vinted'), cinq53: wt('^Cinquante'), chez: wt('^chez'), lance: wt('^lance'), vingt: wt('^Vingt-cinq'), fait: wt('^fait'), plus: wt('^plus'), seul: wt('^seul'), fourn: wt('^fournisseur', 1), quat14: wt('^quatorze'), cent: wt('^Cent$', 0, ''), auth: wt('^authentique'), lien: wt('^lien') };
+const tEt = T.fourn - .3, tCh = T.chez - .35;
+const BG = [[0, C.ink], [tCh + .2, C.blue], [T.fait - .05, C.lime]];
+const HITS = [[.1, 14], [T.quatre + .3, 12], [T.lance, 10], [T.vingt, 28], [T.fait, 16], [T.plus + .4, 18], [tEt + .25, 16], [T.cent, 18]];
+const SCENES = [[0, 'ZABUZA GRIS'], [T.quatre - .2, 'VINTED'], [tCh, 'MACHINE'], [T.fait - .1, 'LA MARGE'], [tEt, 'FOURNISSEUR 14 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(53);
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+
+  // S1
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const aK = Tx(A, 'NIKE', `font:500 34px JM;letter-spacing:.34em;color:${C.cream}`);
+  const aT = MW(A, 'ZABUZA GRIS', `font:150px AB;color:${C.lime};letter-spacing:-.04em`);
+  const photo = Crop(A, IMG, IW, IH, 35, 554, 550, 925, 440, `border-radius:28px;border:8px solid #fff;box-shadow:0 40px 80px rgba(0,0,0,.5)`);
+  const tag = E(A, `width:190px;height:260px;background:${C.cream};clip-path:polygon(30% 0,70% 0,100% 16%,100% 100%,0 100%,0 16%);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px`, `<div style="width:24px;height:24px;border-radius:50%;background:${C.ink};margin-bottom:12px"></div><div style="font:500 18px JM;letter-spacing:.2em;color:#555">ÉTAT</div><div style="font:56px AB;color:${C.ink};line-height:1">NEUF</div>`, 'L');
+  // S2
+  const B = E(world, '', '', 'full');
+  const bK = Tx(B, 'SUR VINTED', `font:500 34px JM;letter-spacing:.34em;color:${C.cream}`);
+  const bP = Tx(B, '0 €', `font:280px AB;color:${C.lime};letter-spacing:-.05em`);
+  const proof = Crop(B, IMG, IW, IH, 51, 1715, 1063, 298, 760, `border-radius:22px;border:4px solid ${C.cream};box-shadow:0 30px 60px rgba(0,0,0,.5)`);
+  const fav = E(B, 'display:flex;align-items:center;gap:16px;width:max-content', `<svg viewBox="0 0 100 90" width="100" height="90"><path d="M50 86 C20 62 4 46 4 26 C4 12 15 2 28 2 C38 2 45 8 50 16 C55 8 62 2 72 2 C85 2 96 12 96 26 C96 46 80 62 50 86 Z" fill="${C.red}"/></svg><span style="font:110px AB;color:${C.cream};line-height:1">53</span>`, 'L');
+  const wC = E(world, `width:2400px;height:1920px;background:${C.blue};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+  // S3 machine
+  const M = E(world, 'perspective:1500px', '', 'full');
+  const mQ = MW(M, 'CHEZ MON', `font:96px AB;color:#fff;letter-spacing:-.03em`);
+  const mQ2 = MW(M, 'FOURNISSEUR ?', `font:110px AB;color:${C.lime};letter-spacing:-.03em`);
+  const mach = E(M, `width:820px;height:720px`, '', 'L p3');
+  E(mach, `position:absolute;inset:0;border-radius:60px;background:linear-gradient(180deg,#E8392F,#B5161A);box-shadow:inset 0 -18px 0 rgba(0,0,0,.25),0 40px 80px rgba(0,0,0,.45)`);
+  const lights = Array.from({ length: 18 }, (_, i) => E(mach, `position:absolute;left:${60 + (i % 9) * 88}px;top:${i < 9 ? 28 : 660}px;width:34px;height:34px;border-radius:50%;background:#FFE27A;box-shadow:0 0 16px #FFD23F`));
+  E(mach, `position:absolute;left:60px;right:60px;top:90px;height:100px;border-radius:24px;background:${C.ink};display:flex;align-items:center;justify-content:center;font:52px AB;color:${C.lime};letter-spacing:.02em;white-space:nowrap`, 'PRIX FOURNISSEUR');
+  const SYM = ['2', '5', '€', '7', '0', '4', '1', '9', '8', '3', '6', '€'], NSY = SYM.length, RH = 300;
+  const reels = [0, 1, 2].map(i => {
+    const w = E(mach, `position:absolute;left:${60 + i * 240}px;top:230px;width:220px;height:${RH}px;border-radius:24px;background:#fff;overflow:hidden;box-shadow:inset 0 14px 20px rgba(0,0,0,.25),inset 0 -14px 20px rgba(0,0,0,.25)`);
+    const strip = E(w, 'position:absolute;left:0;top:0;width:220px');
+    for (let k = 0; k < NSY * 8; k++) E(strip, `height:${RH}px;display:flex;align-items:center;justify-content:center;font:200px AB;color:${C.ink};letter-spacing:-.04em`, SYM[k % NSY]);
+    return { w, strip };
+  });
+  const payline = E(mach, `position:absolute;left:40px;right:40px;top:372px;height:8px;background:rgba(255,59,48,.6);border-radius:4px`);
+  const lever = E(M, `width:40px;height:300px;transform-origin:50% 100%`, `<div style="position:absolute;left:12px;top:40px;width:16px;height:260px;background:#C9CCD3;border-radius:8px"></div><div style="position:absolute;left:-20px;top:0;width:80px;height:80px;border-radius:50%;background:${C.red};box-shadow:inset -8px -8px 0 rgba(0,0,0,.2)"></div>`, 'L');
+  const jack = Tx(M, 'JACKPOT !', `font:130px AB;color:${C.ink};background:${C.lime};padding:16px 40px 8px;border-radius:26px;box-shadow:0 20px 40px rgba(0,0,0,.35)`);
+  const coins = Array.from({ length: 30 }, () => ({ e: E(M, `width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFE9A8,#D9A93C 60%,#A87A1E);display:flex;align-items:center;justify-content:center;font:34px AB;color:#7A5410`, '€', 'L'), a: -Math.PI / 2 + (R() - .5) * 2.6, d: 500 + R() * 600, r: R() * 900 }));
+  const fM = Flood(world, C.lime, 540, 900, T.fait - .3, T.fait - .05);
+  // S4
+  const D = E(world, '', '', 'full');
+  const dEq = Tx(D, '400 € − 25 €', `font:500 48px JM;letter-spacing:.1em;color:${C.ink}`);
+  const dPl = MW(D, 'plus de', `font:italic 120px IS;color:${C.ink}`);
+  const dN = Tx(D, '0 €', `font:320px AB;color:${C.ink};letter-spacing:-.06em`);
+  const dM = MW(D, 'DE MARGE', `font:120px AB;color:${C.ink};letter-spacing:-.03em`);
+  const dOne = E(D, `display:flex;align-items:center;gap:20px;background:${C.ink};border-radius:60px;padding:12px 34px 12px 12px;width:max-content`, '', 'L');
+  Crop(dOne, IMG, IW, IH, 35, 554, 550, 925, 70, 'position:relative;border-radius:50%');
+  E(dOne, `font:44px AB;color:${C.lime};white-space:nowrap`, 'SUR UN SEUL ARTICLE');
+  // fin
+  const fJ = Flood(world, C.lime, 540, 900, tEt - .05, tEt + .25);
+  const end = EndCard(world, tEt + .25, { tPill: T.lien });
+  const seal = E(world, 'width:300px;height:300px', svg('0 0 460 460', `
+    <defs><path id="rgJ" d="M230 230 m-175 0 a175 175 0 1 1 350 0 a175 175 0 1 1 -350 0"/></defs>
+    <circle cx="230" cy="230" r="228" fill="${C.ink}"/><circle cx="230" cy="230" r="140" fill="${C.lime}"/>
+    <g class="rr"><text font-family="JM" font-size="34" font-weight="500" letter-spacing="9" fill="${C.lime}"><textPath href="#rgJ">100 % AUTHENTIQUE • 100 % AUTHENTIQUE • </textPath></text></g>
+    <text x="230" y="262" text-anchor="middle" font-family="AB" font-size="100" fill="${C.ink}">100%</text>`, 300, 300), 'L');
+  const sealRR = seal.querySelector('.rr');
+
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+
+  // position d'un rouleau : défile depuis le tirage, s'arrête sur la cible
+  const STOP = [T.vingt - .7, T.vingt - .35, T.vingt], TARGET = [0, 1, 2];
+  const reelPos = (t, i) => {
+    const t0 = T.lance + .15, ts = STOP[i], v = 14;
+    if (t < t0) return TARGET[i] + NSY + 5 + i * 2;
+    const p1 = v * (ts - .35 - t0);
+    const tgt = Math.ceil((NSY + 5 + i * 2 + p1 + 3) / NSY) * NSY + TARGET[i];
+    if (t < ts - .35) return NSY + TARGET[i] + 5 + i * 2 + v * (t - t0);
+    const u = seg(t, ts - .35, ts);
+    const base = NSY + TARGET[i] + 5 + i * 2 + p1;
+    return lerp(base, tgt, easeOut(u)) + (t > ts ? -.12 * Math.sin((t - ts) * 25) * Math.exp(-(t - ts) * 8) : 0);
+  };
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // S1
+    const s1e = T.quatre - .1;
+    on(A, t < s1e + .2);
+    if (t < s1e + .2) {
+      const out = easeIn(seg(t, s1e - .1, s1e + .15));
+      aK.style.transform = P(540, 280); aK.style.opacity = seg(t, .05, .3) * (1 - out);
+      aT.style.transform = P(540, 400) + ` translateY(${-out * 300}px)`; aT.reveal(t, T.zab, .04);
+      const pk = spring(t - .05, 9, .7);
+      photo.style.transform = `translate(540px,${lerp(1700, 880, pk) - out * 200}px) translate(-50%,-50%) rotateY(${lerp(60, 8, pk) + Math.sin(t * 1.3) * 5}deg) rotateZ(${lerp(12, 3, pk)}deg) scale(${1 - out * .3})`;
+      const tk = spring(t - T.neuf, 10, .8), sw = Math.sin((t - T.neuf) * 3.4) * 14 * Math.exp(-(t - T.neuf) * .8);
+      on(tag, t > T.neuf - .05); tag.style.transform = `translate(${300 - 95}px,${980 - (1 - tk) * 600}px) rotate(${sw - 8}deg)`; tag.style.opacity = 1 - out;
+    }
+    // S2
+    on(B, win(t, s1e, tCh + .3));
+    if (win(t, s1e, tCh + .3)) {
+      bK.style.transform = P(540, 300); bK.style.opacity = seg(t, s1e, s1e + .2);
+      const pk = spring(t - T.quatre - .35, 15, .5);
+      bP.textContent = `${Math.round(lerp(0, 400, easeOut(seg(t, T.quatre, T.quatre + .5))))} €`;
+      bP.style.transform = P(540, 490) + ` scale(${lerp(1.4, 1, pk)})`; bP.style.opacity = seg(t, T.quatre - .1, T.quatre + .05);
+      const ck = spring(t - s1e, 11, .7);
+      proof.style.transform = P(540, lerp(1600, 880, ck)) + ` rotate(${lerp(8, -2, ck)}deg)`;
+      const fk = spring(t - T.cinq53, 16, .55);
+      on(fav, t > T.cinq53 - .05); fav.style.transform = P(800, 1140) + ` scale(${fk}) rotate(-8deg)`;
+    }
+    on(wC, win(t, tCh - .1, tCh + .3));
+    if (win(t, tCh - .1, tCh + .3)) wC.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, tCh - .05, tCh + .2)))}px,0)`;
+    // S3
+    on(M, win(t, tCh + .15, T.fait + .1));
+    if (win(t, tCh + .15, T.fait + .1)) {
+      mQ.style.transform = P(540, 300); mQ.reveal(t, tCh + .2, .025);
+      mQ2.style.transform = P(540, 410); mQ2.reveal(t, tCh + .4, .025);
+      const mk = spring(t - tCh - .2, 9, .7), jk = t > T.vingt ? 1 + .05 * (1 - spring(t - T.vingt, 16, .45)) : 1;
+      mach.style.transform = `translate(500px,${lerp(1900, 960, mk)}px) translate(-50%,-50%) rotateX(${8 + Math.sin(t) * 2}deg) rotateY(${-8 + Math.sin(t * .8) * 3}deg) scale(${jk})`;
+      lights.forEach((l, i) => l.style.opacity = ((i + Math.floor(t * (t > T.vingt ? 14 : 5))) % 2) ? 1 : .25);
+      reels.forEach((r, i) => r.strip.style.transform = `translateY(${-reelPos(t, i) * RH}px)`);
+      const pull = t < T.lance ? 0 : Math.sin(clamp((t - T.lance) / .5) * Math.PI);
+      lever.style.transform = `translate(${500 + 410 + 10}px,${lerp(1900, 960, mk) - 300}px) rotateX(${pull * 70}deg)`;
+      payline.style.opacity = t > T.vingt ? (Math.floor(t * 8) % 2 ? 1 : .3) : .6;
+      const jk2 = spring(t - T.vingt - .1, 16, .45);
+      on(jack, t > T.vingt); jack.style.transform = P(540, 1330) + ` rotate(-4deg) scale(${lerp(2.4, 1, jk2)})`; jack.style.opacity = clamp(jk2 * 2);
+      coins.forEach(c => { const d = t - T.vingt; on(c.e, d > 0 && d < 1.4); if (d > 0) { const k = easeOut(seg(d, 0, 1.2)); c.e.style.transform = `translate(${500 + Math.cos(c.a) * c.d * k}px,${900 + Math.sin(c.a) * c.d * k + 700 * d * d}px) rotate(${c.r * d}deg)`; c.e.style.opacity = 1 - seg(d, 1.0, 1.4); } });
+    }
+    const fl = win(t, T.vingt, T.vingt + .15) ? .5 * (1 - seg(t, T.vingt, T.vingt + .15)) : 0; on(flash, fl > 0); flash.style.opacity = fl;
+    fM(t);
+    // S4
+    on(D, win(t, T.fait - .1, tEt + .3));
+    if (win(t, T.fait - .1, tEt + .3)) {
+      dEq.style.transform = P(540, 330); dEq.style.opacity = seg(t, T.fait, T.fait + .2);
+      dPl.style.transform = P(540, 480); dPl.reveal(t, T.plus, .04);
+      const nk = spring(t - T.plus - .3, 15, .5);
+      dN.textContent = `${Math.round(lerp(0, 370, easeOut(seg(t, T.plus + .3, T.plus + .8))))} €`;
+      dN.style.transform = P(540, 740) + ` scale(${lerp(1.6, 1, nk)})`;
+      dM.style.transform = P(540, 980); dM.reveal(t, T.plus + .8, .03);
+      const ok = spring(t - T.seul + .4, 14, .6);
+      on(dOne, t > T.seul - .45); dOne.style.transform = P(540, 1150) + ` scale(${ok})`;
+    }
+    fJ(t); end(t);
+    const sk = spring(t - T.cent, 15, .5);
+    on(seal, t > T.cent - .05); seal.style.transform = P(900, 500) + ` rotate(${-12 + (1 - sk) * -40}deg) scale(${lerp(2.4, .75, sk) * clamp(sk * 3)})`;
+    sealRR.setAttribute('transform', `rotate(${(t - T.cent) * 50} 230 230)`);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_jackpot.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.2, .6, .3); s.impact(.4, .5); s.tone(T.neuf, .3, 'sine', 1200, 900, .08);
+  s.whoosh(T.quatre - .1, .4, .25, .4); for (let x = T.quatre; x < T.quatre + .5; x += .04) s.tick(x, 1800 + (x - T.quatre) * 2500, .06); s.impact(T.quatre + .35, .4);
+  for (let x = T.cinq53; x < T.cinq53 + .3; x += .05) s.pop(x, 900 + (x - T.cinq53) * 1500, .08);
+  s.whoosh(tCh, .3, .3, -.5); s.whoosh(tCh + .3, .6, .25);
+  s.tone(T.lance, .2, 'square', 300, 120, .12, .005); s.stamp(T.lance + .25, .4);
+  for (let x = T.lance + .15; x < T.vingt; x += .07) s.tick(x, 900 + ((x * 37) % 1) * 600, .07);
+  [T.vingt - .7, T.vingt - .35].forEach(x => s.stamp(x, .35));
+  s.impact(T.vingt, .9); s.ding(T.vingt + .05, .3); for (let i = 0; i < 14; i++) s.tone(T.vingt + .1 + i * .07, .12, 'square', 880 + (i % 4) * 220, 880 + (i % 4) * 220, .05, .005);
+  s.riser(T.fait - .8, T.fait, .18); s.impact(T.fait, .7);
+  for (let x = T.plus + .3; x < T.plus + .8; x += .04) s.tick(x, 1800 + (x - T.plus) * 2000, .06); s.cash(T.plus + .8, .3); s.pop(T.seul - .4, 800, .25);
+  s.riser(tEt - .7, tEt + .25, .18); s.impact(tEt + .25, .8); s.whoosh(tEt + .3, .5, .3); s.stamp(T.cent, .7); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>
