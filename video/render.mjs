@@ -48,12 +48,14 @@ if (a3 === '--stills') {
   console.log('stills ->', out); process.exit(0);
 }
 
-const fps = +a3, sub = Math.max(1, +a4), workers = Math.max(1, +a5), N = Math.round(V.duration * fps);
+if (a3 === '--audio') { /* audio seul : saute la vidéo */ }
+const AUDIO_ONLY = a3 === '--audio';
+const fps = AUDIO_ONLY ? 30 : +a3, sub = Math.max(1, +a4), workers = Math.max(1, +a5), N = Math.round(V.duration * fps);
 const base = out.replace(/\.mp4$/, '');
 const vf = sub > 1 ? ['-vf', `tmix=frames=${sub},select='eq(mod(n\\,${sub})\\,${sub - 1})',setpts=N/(${fps}*TB)`] : [];
 const t0 = Date.now(); let doneFrames = 0;
 const per = Math.ceil(N / workers), segs = [];
-await Promise.all(Array.from({ length: workers }, async (_, w) => {
+if (!AUDIO_ONLY) await Promise.all(Array.from({ length: workers }, async (_, w) => {
   const a = w * per, b = Math.min(N, a + per); if (a >= b) return;
   const seg = `${base}_seg${w}.mp4`; segs[w] = seg;
   const page = await openPage();
@@ -69,11 +71,13 @@ await Promise.all(Array.from({ length: workers }, async (_, w) => {
   }
   ff.stdin.end(); await closed; await page.close();
 }));
+if (!AUDIO_ONLY) {
 const list = base + '_segs.txt';
 writeFileSync(list, segs.filter(Boolean).map(s => `file '${path.resolve(s)}'`).join('\n'));
 await run(['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', base + '_video.mp4']);
 segs.filter(Boolean).forEach(s => rmSync(s)); rmSync(list);
 console.log(`\nvideo -> ${base}_video.mp4  (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
+}
 
 const page = await openPage();
 if (await page.evaluate(() => typeof window.buildAudio === 'function')) {

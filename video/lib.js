@@ -256,10 +256,11 @@ function KEVIN(parent) {
 }
 
 // ---------- carte de fin commune (fond vert) : « LE FOURNISSEUR » + 14€ 3D + catégories + LIEN EN BIO ----------
-function EndCard(parent, t0, { tPill = t0 + .45 } = {}) {
+function EndCard(parent, t0, { tPill = t0 + .45, price = '14€', cats: catsTxt = 'LUXE · RUNNING · STREETWEAR · SNEAKERS', sub = '' } = {}) {
   const J = E(parent, 'perspective:1800px', '', 'full');
   const le = MW(J, 'LE FOURNISSEUR', `font:84px AB;color:${C.ink};letter-spacing:-.02em`);
-  const ext = EXT(J, '14€', 400, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const ext = EXT(J, price, 400, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const subEl = sub ? Tx(J, sub, `font:500 30px JM;letter-spacing:.2em;color:${C.ink};background:rgba(11,11,16,.08);border-radius:30px;padding:10px 22px`) : null;
   const sh = E(J, `width:700px;height:90px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.35),transparent)`, '', 'L');
   const cats = Tx(J, '', `font:500 30px JM;color:${C.ink};letter-spacing:.12em`);
   const rule = E(J, `height:3px;background:${C.ink}`, '', 'L');
@@ -271,7 +272,8 @@ function EndCard(parent, t0, { tPill = t0 + .45 } = {}) {
     const k = spring(t - t0, 9, .62), sway = Math.sin((t - t0 - .4) * 1.7) * 16 * seg(t, t0 + .4, t0 + .9);
     ext.style.transform = `translate(540px,760px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
     sh.style.transform = P(540, 1010) + ` scale(${k})`;
-    const c = 'LUXE · RUNNING · STREETWEAR · SNEAKERS';
+    const c = catsTxt;
+    if (subEl) { subEl.style.transform = P(540, 450); subEl.style.opacity = seg(t, t0 + .3, t0 + .5); }
     cats.textContent = c.slice(0, Math.floor(seg(t, t0 + .5, t0 + 1.3) * c.length)); cats.style.transform = P(540, 1105);
     rule.style.width = `${760 * easeOut(seg(t, t0 + .6, t0 + 1.2))}px`; rule.style.transform = P(540, 1170);
     on(pill, t > tPill - .05); pill.style.transform = P(540, 1300) + ` scale(${spring(t - tPill, 14, .55)})`;

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nouveau 79€ — Fournisseur + groupe privé</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 12 — « NOUVEAU : 79 € + GROUPE PRIVÉ »   voix : voix_nouveau.mp3
+   S1  Sticker NOUVEAU, étiquette 3D 14 € barrée qui se retourne → 79 €
+   S2  Cadenas 3D qui se déverrouille : GROUPE PRIVÉ
+   S3  « DEDANS » : 4 salons qui tombent (fournisseur, nouveautés, résultats, accès direct)
+   S4  Stickers RUNNING / STREETWEAR / SNEAKERS → « TOUT EST DEDANS »
+   S5  Fin : 79€ 3D + « FOURNISSEUR + GROUPE PRIVÉ » + LIEN EN BIO
+   ===================================================================== */
+const WORDS = WORDS_JSON("nouveau");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { four: wt('^fournisseur'), px: wt('^soixante'), mais: wt('^Mais'), acc: wt('^accès'), grp: wt('^groupe'), ded: wt('^Dedans'), it1: wt('^fournisseur', 1), it2: wt('^toutes'), it3: wt('^résultats'), it4: wt('^et$', 0), run: wt('^Running'), str: wt('^streetwear'), snk: wt('^sneakers'), tout: wt('^tout$'), lien: wt('^lien') };
+const S2 = T.mais - .15, S3 = T.ded - .15, S4 = T.run - .2, S5 = T.lien - .55;
+const BG = [[0, C.ink], [S3 + .25, C.blue], [S4 + .25, C.lime], [S5 + .25, C.lime]];
+const HITS = [[.05, 18], [T.px + .3, 24], [T.acc, 14], [T.grp, 18], [S3 + .25, 12], [T.it1, 8], [T.it2, 8], [T.it3, 8], [T.it4, 8], [S4 + .25, 14], [T.run, 8], [T.str, 8], [T.snk, 8], [T.tout, 14], [S5 + .25, 16]];
+const SCENES = [[0, 'NOUVEAU'], [S2, 'GROUPE PRIVÉ'], [S3, 'DEDANS'], [S4, 'CATALOGUE'], [S5, 'FOURNISSEUR 79 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+  // S1
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const nv = Tx(A, 'NOUVEAU', `font:130px AB;color:#fff;background:${C.red};padding:18px 44px 8px;border-radius:26px;box-shadow:0 24px 50px rgba(0,0,0,.4)`);
+  const aK = Tx(A, 'LE FOURNISSEUR PASSE À', `font:500 34px JM;letter-spacing:.24em;color:${C.cream}`);
+  const tag = E(A, 'width:640px;height:420px', '', 'L p3');
+  E(tag, `position:absolute;inset:0;background:${C.cream};border-radius:36px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px`, `<div style="font:500 28px JM;letter-spacing:.3em;color:#666">AVANT</div><div style="position:relative;font:220px AB;color:${C.ink};letter-spacing:-.05em;line-height:1">14 €<div class="sk" style="position:absolute;left:-10px;top:50%;height:22px;width:0;background:${C.red};border-radius:11px;transform:rotate(-8deg)"></div></div>`);
+  const strk = tag.querySelector('.sk');
+  E(tag, `position:absolute;inset:0;background:${C.lime};border-radius:36px;backface-visibility:hidden;transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px`, `<div style="font:500 28px JM;letter-spacing:.3em;color:${C.ink}">MAINTENANT</div><div style="font:240px AB;color:${C.ink};letter-spacing:-.05em;line-height:1">79 €</div>`);
+  // S2 cadenas
+  const B = E(world, '', '', 'full');
+  const bK = Tx(B, 'MAIS MAINTENANT', `font:500 34px JM;letter-spacing:.3em;color:${C.cream}`);
+  const lock = E(B, 'width:360px;height:460px', svg('0 0 360 460', `
+    <path class="sh" d="M90 200 V130 A90 90 0 0 1 270 130 V200" stroke="#C9CCD3" stroke-width="40" fill="none" stroke-linecap="round"/>
+    <rect x="30" y="190" width="300" height="250" rx="44" fill="${C.lime}"/><rect x="30" y="190" width="300" height="40" rx="20" fill="#9DCC2E"/>
+    <circle cx="180" cy="300" r="32" fill="${C.ink}"/><rect x="166" y="310" width="28" height="70" rx="12" fill="${C.ink}"/>`, 360, 460), 'L');
+  const shk = lock.querySelector('.sh');
+  const glow = E(B, `width:900px;height:900px;border-radius:50%;background:radial-gradient(closest-side,rgba(198,255,61,.35),rgba(198,255,61,0))`, '', 'L');
+  const bT = MW(B, 'GROUPE PRIVÉ', `font:116px AB;color:${C.lime};letter-spacing:-.04em`);
+  const bA = Tx(B, 'ACCÈS INCLUS', `font:52px AB;color:${C.ink};background:#fff;border-radius:40px;padding:16px 34px 10px`);
+  const wC = E(world, `width:2400px;height:1920px;background:${C.blue};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+  // S3 liste
+  const Cc = E(world, '', '', 'full');
+  const cT = MW(Cc, 'DEDANS', `font:150px AB;color:#fff;letter-spacing:-.04em`);
+  const ITEMS = [['fournisseur', T.it1, 'Photos QC · remboursé si pas bon'], ['nouveautés', T.it2, 'Postées dès qu\'elles tombent'], ['résultats-membres', T.it3, 'Les premières ventes de la team'], ['contact', T.it4, 'Accès direct à moi']];
+  const rows = ITEMS.map(([n, , d]) => E(Cc, `width:900px;display:flex;align-items:center;gap:24px;background:#2B2D31;border-radius:30px;padding:22px 30px;box-shadow:0 20px 40px rgba(0,0,0,.35)`, `<div style="flex:none;width:96px;height:96px;border-radius:24px;background:${C.lime};display:flex;align-items:center;justify-content:center;font:64px AB;color:${C.ink}">#</div><div><div style="font:56px AB;color:#fff;letter-spacing:-.01em">${n}</div><div style="font:600 28px IT;color:#B5BAC1;margin-top:4px">${d}</div></div><div class="ck" style="margin-left:auto;width:64px;height:64px;border-radius:50%;background:#18A957;display:flex;align-items:center;justify-content:center">${svg('0 0 40 40', `<path d="M10 21 L17 28 L30 13" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, 38, 38)}</div>`, 'L'));
+  const fD = Flood(world, C.lime, 540, 900, S4, S4 + .25);
+  // S4
+  const D = E(world, '', '', 'full');
+  const STK = [['RUNNING', 'run', T.run, 300, 560, -9, C.ink, C.lime], ['STREETWEAR', 'hood', T.str, 640, 820, 7, C.blue, '#fff'], ['SNEAKERS', 'sneak', T.snk, 360, 1080, -5, C.ink, C.lime]];
+  const stk = STK.map(([l, ic, , , , , b, f]) => E(D, `display:flex;align-items:center;gap:18px;background:${b};border-radius:32px;padding:22px 36px 22px 24px;width:max-content;box-shadow:0 22px 40px rgba(0,0,0,.25)`, `${icon(ic, f, b === C.ink ? '#333' : C.ink, 130)}<span style="font:76px AB;color:${f}">${l}</span>`, 'L'));
+  const dT = MW(D, 'TOUT EST DEDANS', `font:96px AB;color:${C.ink};letter-spacing:-.03em`);
+  const end = EndCard(world, S5 + .25, { tPill: T.lien, price: '79€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const fE = Flood(world, C.lime, 540, 900, S5, S5 + .25);
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'FOURNISSEUR — 79 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // S1
+    on(A, t < S2 + .2);
+    if (t < S2 + .2) {
+      const out = easeIn(seg(t, S2 - .15, S2 + .15));
+      const nk = spring(t - .05, 16, .5);
+      nv.style.transform = P(540, 300 - out * 400) + ` rotate(-6deg) scale(${lerp(2.4, 1, nk)})`; nv.style.opacity = clamp(nk * 2);
+      aK.style.transform = P(540, 480); aK.style.opacity = seg(t, T.four, T.four + .2) * (1 - out);
+      const ek = spring(t - .5, 10, .65), fk = spring(t - T.px, 9, .6);
+      tag.style.transform = `translate(540px,${900 + out * 1300}px) translate(-50%,-50%) rotateX(${lerp(80, 8, ek) + Math.sin(t * 1.5) * 4}deg) rotateY(${180 * fk + Math.sin(t * 1.2) * 6}deg) scale(${lerp(.3, 1, ek) * (1 + .12 * (1 - spring(t - T.px - .3, 16, .5)) * (t > T.px + .3))})`;
+      strk.style.width = `${560 * easeOut(seg(t, T.px - .45, T.px - .2))}px`;
+    }
+    const fl = win(t, T.px + .3, T.px + .45) ? .4 * (1 - seg(t, T.px + .3, T.px + .45)) : 0; on(flash, fl > 0); flash.style.opacity = fl;
+    // S2
+    on(B, win(t, S2, S3 + .3));
+    if (win(t, S2, S3 + .3)) {
+      bK.style.transform = P(540, 300); bK.style.opacity = seg(t, S2, S2 + .2);
+      const lk = spring(t - S2 - .1, 11, .6), open = spring(t - T.acc, 14, .5);
+      lock.style.transform = P(540, 780) + ` scale(${lk}) rotate(${Math.sin((t - T.acc) * 40) * 6 * Math.exp(-Math.max(0, t - T.acc) * 5) * (t > T.acc)}deg)`;
+      shk.setAttribute('transform', `translate(${open * 60} ${-open * 70}) rotate(${open * 20} 270 200)`);
+      on(glow, t > T.acc); glow.style.transform = P(540, 780) + ` scale(${spring(t - T.acc, 8, .8)})`;
+      on(bT, t > T.grp - .1); bT.style.transform = P(540, 1130); bT.reveal(t, T.grp, .03);
+      on(bA, t > T.grp + .4); bA.style.transform = P(540, 1290) + ` scale(${spring(t - T.grp - .45, 16, .55)})`;
+    }
+    on(wC, win(t, S3, S3 + .3)); if (win(t, S3, S3 + .3)) wC.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, S3, S3 + .25)))}px,0)`;
+    // S3
+    on(Cc, win(t, S3 + .2, S4 + .3));
+    if (win(t, S3 + .2, S4 + .3)) {
+      cT.style.transform = P(540, 320); cT.reveal(t, S3 + .2, .04);
+      rows.forEach((r, i) => { const t0 = ITEMS[i][1], k = spring(t - t0, 14, .65); on(r, t > t0 - .02); r.style.transform = P(lerp(1600, 540, k), 560 + i * 190) + ` rotate(${(1 - k) * 6}deg)`; const ck = r.querySelector('.ck'); ck.style.transform = `scale(${spring(t - t0 - .3, 18, .5)})`; });
+    }
+    fD(t);
+    // S4
+    on(D, win(t, S4 + .2, S5 + .3));
+    if (win(t, S4 + .2, S5 + .3)) {
+      STK.forEach(([, , t0, x, y, r], i) => { const k = spring(t - t0, 15, .5); on(stk[i], t > t0 - .02); stk[i].style.transform = P(x, y) + ` rotate(${r + (1 - k) * 30}deg) scale(${lerp(2.2, 1, k) * clamp(k * 2)})`; });
+      on(dT, t > T.tout - .1); dT.style.transform = P(540, 1290); dT.reveal(t, T.tout, .03);
+    }
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_nouveau.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.impact(.05, .7); s.stamp(.1, .5); s.whoosh(.5, .5, .3);
+  s.tick(T.px - .45, 1800, .15); s.whoosh(T.px, .45, .35); s.impact(T.px + .3, .8); s.ding(T.px + .35, .2);
+  s.whooshDown(S2, .4, .3); s.pop(S2 + .15, 500, .25);
+  s.tone(T.acc, .08, 'square', 2200, 1800, .2, .002); s.tone(T.acc + .08, .12, 'square', 1500, 900, .2, .002); s.ding(T.grp, .2); s.impact(T.grp, .5);
+  s.whoosh(S3, .3, .3, -.5); [T.it1, T.it2, T.it3, T.it4].forEach((x, i) => { s.whoosh(x, .25, .2, .4); s.pop(x + .3, 900 + i * 120, .2); });
+  s.riser(S4 - .6, S4 + .25, .18); s.impact(S4 + .25, .7); [T.run, T.str, T.snk].forEach((x, i) => s.pop(x, 600 + i * 150, .3));
+  s.stamp(T.tout, .5); s.riser(S5 - .5, S5 + .25, .18); s.impact(S5 + .25, .8); s.whoosh(S5 + .3, .5, .3); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Groupe privé — Fournisseur 79€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 13 — « DANS LE GROUPE PRIVÉ »   voix : voix_groupe.mp3
+   S1  Porte de coffre-fort 3D : la molette tourne, la porte s'ouvre
+   1   Fournisseur : polaroids QC + tampon REMBOURSÉ si pas bon
+   2   Nouveautés : cloche + posts qui tombent
+   3   Résultats membres : vraie capture d'un membre (avatar flouté)
+   4   Accès direct : bulles de DM
+   Fin Le tout pour 79€ + LIEN EN BIO
+   ===================================================================== */
+const WORDS = WORDS_JSON("groupe");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { grp: wt('^groupe'), u1: wt('^Un$', 0, ''), avec: wt('^avec'), remb: wt('^remboursé'), u2: wt('^Deux'), post: wt('^postées'), u3: wt('^Trois'), prem: wt('^premières'), u4: wt('^Quatre'), acc: wt('^accès'), tout: wt('^tout$'), lien: wt('^lien') };
+const ST = [T.u1, T.u2, T.u3, T.u4], SE = T.tout - .3;
+const LBL = ['LE FOURNISSEUR', 'LES NOUVEAUTÉS', 'LES RÉSULTATS', 'ACCÈS DIRECT'];
+const COL = [C.blue, C.ink, C.blue, C.ink];
+const BG = [[0, C.ink], ...ST.map((s, i) => [s + .2, COL[i]]), [SE + .3, C.lime]];
+const HITS = [[T.grp, 16], ...ST.map(s => [s + .2, 16]), [T.remb, 14], [T.prem, 10], [SE + .3, 18]];
+const SCENES = [[0, 'GROUPE PRIVÉ'], ...ST.map((s, i) => [s, `0${i + 1} · ${LBL[i]}`]), [SE, 'FOURNISSEUR 79 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+  // coffre
+  const V = E(world, 'perspective:1400px', '', 'full');
+  const vT = MW(V, 'LE GROUPE PRIVÉ', `font:104px AB;color:${C.lime};letter-spacing:-.03em`);
+  const vK = Tx(V, 'CE QUE TU TROUVES DANS', `font:500 34px JM;letter-spacing:.24em;color:${C.cream}`);
+  const frame = E(V, `width:700px;height:700px;border-radius:60px;background:#3A3D46;box-shadow:inset 0 0 0 18px #2B2D31,0 40px 80px rgba(0,0,0,.5)`, '', 'L p3');
+  const inside = E(frame, `position:absolute;left:60px;top:60px;width:580px;height:580px;border-radius:50%;background:radial-gradient(circle,${C.lime},#7BA21F)`);
+  const door = E(frame, `position:absolute;left:50px;top:50px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#9AA0AC,#5D626D);box-shadow:inset 0 0 0 16px #4A4E58;transform-origin:0 50%`, '');
+  const dial = E(door, `position:absolute;left:150px;top:150px;width:300px;height:300px;border-radius:50%;background:#2B2D31;box-shadow:inset 0 0 0 10px #C9CCD3`, svg('0 0 300 300', `<g stroke="#C9CCD3" stroke-width="18" stroke-linecap="round"><path d="M150 40 V260 M40 150 H260 M72 72 L228 228 M228 72 L72 228"/></g><circle cx="150" cy="150" r="40" fill="${C.lime}"/>`, 300, 300));
+  // sections
+  const head = E(world, `display:flex;align-items:center;gap:22px;width:max-content`, '', 'L');
+  const hN = E(head, `width:120px;height:120px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:64px AB;color:${C.ink}`, '01');
+  const hT = E(head, `font:80px AB;color:#fff;letter-spacing:-.02em;white-space:nowrap`, '');
+  // 1 fournisseur
+  const s1 = E(world, '', '', 'full');
+  const pols = [-12, 0, 12].map((r, i) => E(s1, `width:250px;height:310px;background:#fff;padding:14px;border-radius:8px;box-shadow:0 24px 50px rgba(0,0,0,.35)`, `<div style="width:222px;height:222px;background:${['#E2E8FF', '#EAFBCB', '#FFE7D6'][i]};display:flex;align-items:center;justify-content:center">${icon(['jacket', 'run', 'sneak'][i], '#1D1D25', '#fff', 170)}</div><div style="margin-top:14px;font:500 18px JM;color:#333;letter-spacing:.12em">PHOTO QC ${i + 1}/3</div>`, 'L'));
+  const remb = Tx(s1, 'REMBOURSÉ SI PAS BON', `font:70px AB;color:${C.lime};border:10px solid ${C.lime};padding:12px 30px 4px;border-radius:22px;background:rgba(11,11,16,.35)`);
+  // 2 nouveautés
+  const s2 = E(world, '', '', 'full');
+  const bell = E(s2, '', svg('0 0 100 110', `<path d="M50 8 C30 8 20 24 20 44 L20 70 L10 84 L90 84 L80 70 L80 44 C80 24 70 8 50 8 Z" fill="#FFD23F" stroke="${C.ink}" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="96" r="10" fill="#FFD23F" stroke="${C.ink}" stroke-width="6"/>`, 200, 220), 'L');
+  const posts = ['NOUVEL ARTICLE', 'NOUVELLE PÉPITE'].map(l => E(s2, `width:820px;background:#2B2D31;border-radius:26px;padding:24px 28px;display:flex;gap:20px;align-items:center;box-shadow:0 20px 40px rgba(0,0,0,.35)`, `<div style="flex:none;width:80px;height:80px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:42px AB;color:${C.ink}">S</div><div><div style="font:600 24px IT;color:#949BA4">SIDORF · à l'instant</div><div style="font:52px AB;color:${C.lime}">${l}</div></div>`, 'L'));
+  // 3 résultats
+  const s3 = E(world, 'perspective:1400px', '', 'full');
+  const shot = E(s3, `width:560px;border-radius:28px;overflow:hidden;border:5px solid #3F4147;box-shadow:0 40px 80px rgba(0,0,0,.6)`, `<img src="assets/temoin3.png" style="width:100%;display:block">`, 'L');
+  const pv = Tx(s3, 'PREMIÈRES VENTES ✓', `font:56px AB;color:${C.ink};background:${C.lime};padding:16px 32px 10px;border-radius:40px;box-shadow:0 16px 30px rgba(0,0,0,.3)`);
+  // 4 accès
+  const s4 = E(world, '', '', 'full');
+  const q = E(s4, `background:#fff;border-radius:40px 40px 40px 10px;padding:28px 40px;font:60px AB;color:${C.ink};width:max-content;box-shadow:0 20px 40px rgba(0,0,0,.3)`, 'Une question ?', 'L');
+  const ans = E(s4, `background:${C.lime};border-radius:40px 40px 10px 40px;padding:28px 40px;width:max-content;box-shadow:0 20px 40px rgba(0,0,0,.3)`, `<div style="font:500 22px JM;letter-spacing:.2em;color:${C.ink}">SIDORF</div><div style="font:58px AB;color:${C.ink};line-height:1.1">Je te réponds ✓</div>`, 'L');
+  const fE = Flood(world, C.lime, 540, 900, SE, SE + .3);
+  const end = EndCard(world, SE + .3, { tPill: T.lien, price: '79€', sub: 'LE TOUT POUR', cats: 'FOURNISSEUR · NOUVEAUTÉS · RÉSULTATS · CONTACT' });
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'GROUPE PRIVÉ — 79 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    let k = -1; ST.forEach((s, i) => { if (t >= s) k = i; }); if (t >= SE + .3) k = -2;
+    // coffre
+    on(V, t < ST[0] + .35);
+    if (t < ST[0] + .35) {
+      vK.style.transform = P(540, 280); vK.style.opacity = seg(t, .05, .3);
+      vT.style.transform = P(540, 390); vT.reveal(t, T.grp, .03);
+      const fk = spring(t - .1, 9, .7), zoom = easeIn(seg(t, ST[0] - .25, ST[0] + .3));
+      frame.style.transform = `translate(540px,${lerp(1800, 900, fk)}px) translate(-50%,-50%) rotateX(${8 - zoom * 8}deg) scale(${1 + zoom * 2.8})`;
+      dial.style.transform = `rotate(${easeOut(seg(t, .5, T.grp + .2)) * 540}deg)`;
+      door.style.transform = `rotateY(${-110 * ease(seg(t, T.grp + .3, ST[0] - .1))}deg)`;
+      frame.style.opacity = 1 - seg(t, ST[0] + .1, ST[0] + .35);
+    }
+    // en-tête
+    on(head, k >= 0);
+    if (k >= 0) { hN.textContent = `0${k + 1}`; hT.textContent = LBL[k]; const hk = spring(t - ST[k], 18, .6); head.style.transform = P(540, 310) + ` translateX(${(1 - hk) * 220}px)`; head.style.opacity = clamp(hk * 2); }
+    // 1
+    on(s1, k === 0);
+    if (k === 0) {
+      pols.forEach((p, i) => { const pk = spring(t - T.avec - i * .12, 13, .6); p.style.transform = P(lerp(540, [290, 540, 790][i], pk), lerp(1500, [760, 700, 770][i], pk)) + ` rotate(${[-12, 0, 12][i] * pk}deg) scale(${lerp(.4, 1, pk)})`; });
+      const rk = spring(t - T.remb, 16, .5);
+      on(remb, t > T.remb - .02); remb.style.transform = P(540, 1150) + ` rotate(-6deg) scale(${lerp(2.4, 1, rk)})`; remb.style.opacity = clamp(rk * 2);
+    }
+    // 2
+    on(s2, k === 1);
+    if (k === 1) {
+      const d = t - ST[1];
+      bell.style.transform = P(540, 610) + ` scale(${spring(d - .1, 14, .5)}) rotate(${Math.sin(d * 30) * 16 * Math.exp(-d * 2)}deg)`;
+      posts.forEach((p, i) => { const pk = spring(t - T.post - i * .4, 14, .65); p.style.transform = P(lerp(1600, 540, pk), 900 + i * 180); });
+    }
+    // 3
+    on(s3, k === 2);
+    if (k === 2) {
+      const sk = spring(t - ST[2] - .2, 10, .7);
+      shot.style.transform = `translate(540px,${lerp(1900, 820, sk)}px) translate(-50%,-50%) rotateY(${-12 + Math.sin(t) * 4}deg) rotateZ(-3deg) scale(.95)`;
+      const pk = spring(t - T.prem, 16, .5);
+      on(pv, t > T.prem - .02); pv.style.transform = P(560, 1250) + ` rotate(-4deg) scale(${lerp(2, 1, pk) * clamp(pk * 2)})`;
+    }
+    // 4
+    on(s4, k === 3);
+    if (k === 3) {
+      const qk = spring(t - ST[3] - .2, 14, .6), ak = spring(t - T.acc - .2, 14, .55);
+      q.style.transform = P(400, 650) + ` scale(${qk}) rotate(-3deg)`; q.style.transformOrigin = '0 100%';
+      on(ans, t > T.acc + .15); ans.style.transform = P(660, 900) + ` scale(${ak}) rotate(2deg)`; ans.style.transformOrigin = '100% 100%';
+    }
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_groupe.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.3, .6, .3); for (let x = .5; x < T.grp + .2; x += .09) s.tick(x, 700 + ((x * 13) % 1) * 300, .1);
+  s.tone(T.grp + .25, .3, 'square', 120, 60, .3, .005); s.whoosh(T.grp + .5, .8, .25); s.ding(T.grp + .9, .15);
+  ST.forEach((x, i) => { s.whoosh(x, .35, .3, i % 2 ? .4 : -.4); s.impact(x + .2, .5); s.pop(x + .25, 700 + i * 130, .25); });
+  [0, 1, 2].forEach(i => s.pop(T.avec + i * .12, 800 + i * 140, .2)); s.stamp(T.remb, .8);
+  for (let i = 0; i < 3; i++) s.ding(ST[1] + .15 + i * .15, .1); s.whoosh(T.post, .3, .2); s.whoosh(T.post + .4, .3, .2);
+  s.whoosh(ST[2] + .2, .5, .25); s.pop(T.prem, 800, .3);
+  s.pop(ST[3] + .25, 700, .25); s.ding(T.acc + .2, .18);
+  s.riser(SE - .6, SE + .3, .18); s.impact(SE + .3, .8); s.whoosh(SE + .35, .5, .3); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>

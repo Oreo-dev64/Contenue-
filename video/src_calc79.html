@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>79€ c est cher — Fournisseur</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 14 — « 79 €, C'EST CHER ? »   voix : voix_calc79.mp3
+   S1  79€ 3D qui tourne + tampon rouge « C'EST CHER ? »
+   S2  « FAIS LE CALCUL » : 3 fiches réelles (photo + prix fournisseur + prix Vinted)
+   S3  Flood vert : jauge 79 € remplie par UN SEUL article → tampon RENTABILISÉ
+   S4  Fin : 79€ + LIEN EN BIO
+   ===================================================================== */
+const WORDS = WORDS_JSON("calc79");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { cher: wt('^cher'), calc: wt('^Fais'), z: wt('^Zabuza'), a1: wt('^vingt-cinq', 0), v1: wt('^quatre'), b: wt('^Berlin'), a2: wt('^vingt-cinq', 1), v2: wt('^trois'), c: wt('^veste'), a3: wt('^trente$'), v3: wt('^cent$', 1), seul: wt('^Un$', 0, ''), rent: wt('^rentabilisé'), lien: wt('^lien') };
+const ROWS = [
+  { name: 'ZABUZA GRIS', img: "assets/vinted_zgris.png", crop: [35, 554, 550, 925], t: T.z, ta: T.a1, tv: T.v1, fp: '25 €', vp: '400 €' },
+  { name: 'NIKE RUNNING BERLIN', img: "assets/vinted_berlin.png", crop: [35, 570, 550, 924], t: T.b, ta: T.a2, tv: T.v2, fp: '25 €', vp: '320 €' },
+  { name: 'VESTE NIKE ADV', img: "assets/vinted_adv.png", crop: [35, 535, 550, 927], t: T.c, ta: T.a3, tv: T.v3, fp: '30 €', vp: '135 €' },
+];
+const S2 = T.calc - .15, S3 = T.seul - .2, S4 = T.lien - .6;
+const BG = [[0, C.ink], [S2 + .25, C.blue], [S3 + .25, C.lime]];
+const HITS = [[.3, 18], [T.cher, 20], [S2 + .25, 12], ...ROWS.flatMap(r => [[r.t, 10], [r.tv, 12]]), [S3 + .25, 16], [T.rent, 24], [S4 + .25, 14]];
+const SCENES = [[0, '79 €'], [S2, 'LE CALCUL'], [S3, 'RENTABILISÉ'], [S4, 'FOURNISSEUR 79 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1700px', '', 'full');
+  // S1
+  const A = E(world, 'perspective:1800px', '', 'full');
+  const ext = EXT(A, '79€', 420, 26, 120, C.lime, '#5E7A16', '#1E2A05', '#9BCB2A');
+  const cher = Tx(A, "C'EST CHER ?", `font:120px AB;color:${C.red};border:12px solid ${C.red};padding:14px 36px 6px;border-radius:24px;background:rgba(11,11,16,.6)`);
+  const wB = E(world, `width:2400px;height:1920px;background:${C.blue};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+  // S2
+  const B = E(world, '', '', 'full');
+  const bT = MW(B, 'FAIS LE CALCUL', `font:110px AB;color:#fff;letter-spacing:-.03em`);
+  const cards = ROWS.map(r => {
+    const c = E(B, `width:960px;height:270px;border-radius:34px;background:#fff;display:flex;align-items:center;gap:26px;padding:18px;box-shadow:0 24px 50px rgba(0,0,0,.3)`, '', 'L');
+    const [ox, oy, ow, oh] = r.crop;
+    Crop(c, r.img, 1170, 2532, ox, oy, ow, oh, 140, 'position:relative;flex:none;border-radius:20px');
+    const info = E(c, 'display:flex;flex-direction:column;gap:14px');
+    E(info, `font:44px AB;color:${C.ink};letter-spacing:-.01em;white-space:nowrap`, r.name);
+    const pr = E(info, 'display:flex;gap:14px;align-items:center');
+    const fp = E(pr, `background:${C.lime};border-radius:20px;padding:10px 20px 6px;text-align:center`, `<div style="font:500 16px JM;letter-spacing:.16em;color:${C.ink}">FOURNISSEUR</div><div style="font:62px AB;color:${C.ink};line-height:1">${r.fp}</div>`);
+    const ar = E(pr, '', svg('0 0 60 30', `<path d="M4 15 H48 M38 5 L52 15 L38 25" stroke="${C.ink}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, 60, 30));
+    const vp = E(pr, `background:${C.ink};border-radius:20px;padding:10px 20px 6px;text-align:center`, `<div style="font:500 16px JM;letter-spacing:.16em;color:#fff">VINTED</div><div style="font:62px AB;color:#fff;line-height:1">${r.vp}</div>`);
+    return { c, fp, ar, vp };
+  });
+  // corrige le recadrage (Crop utilise background-size en px : on recalcule)
+  const fC = Flood(world, C.lime, 540, 900, S3, S3 + .25);
+  // S3
+  const Cc = E(world, '', '', 'full');
+  const cT = MW(Cc, 'UN SEUL ARTICLE', `font:110px AB;color:${C.ink};letter-spacing:-.03em`);
+  const gauge = E(Cc, `width:880px;height:170px;border-radius:85px;background:rgba(11,11,16,.12);overflow:hidden;border:6px solid ${C.ink}`, '', 'L');
+  const gFill = E(gauge, `height:100%;width:0;background:${C.ink};border-radius:85px`);
+  const gLab = Tx(Cc, '', `font:64px AB;color:${C.lime};letter-spacing:-.02em`);
+  const gK = Tx(Cc, 'FOURNISSEUR 79 €', `font:500 32px JM;letter-spacing:.2em;color:${C.ink}`);
+  const stamp = Tx(Cc, 'RENTABILISÉ ✓', `font:120px AB;color:${C.ink};border:12px solid ${C.ink};padding:12px 36px 4px;border-radius:24px`);
+  const fE = Flood(world, C.lime, 540, 900, S4, S4 + .25);
+  const end = EndCard(world, S4 + .25, { tPill: T.lien + .1, price: '79€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'FOURNISSEUR — 79 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // S1
+    on(A, t < S2 + .3);
+    if (t < S2 + .3) {
+      const k = spring(t - .05, 9, .62), out = easeIn(seg(t, S2, S2 + .3));
+      ext.style.transform = `translate(540px,${780 - out * 900}px) rotateX(12deg) rotateY(${lerp(-720, -14, k) + Math.sin(t * 1.6) * 10}deg) scale(${lerp(.15, 1, k)})`;
+      const ck = spring(t - T.cher, 16, .45);
+      on(cher, t > T.cher - .02); cher.style.transform = P(540, 1130) + ` rotate(-8deg) scale(${lerp(2.6, 1, ck) * (1 - out)})`; cher.style.opacity = clamp(ck * 2);
+    }
+    on(wB, win(t, S2, S2 + .3)); if (win(t, S2, S2 + .3)) wB.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, S2, S2 + .25)))}px,0)`;
+    // S2
+    on(B, win(t, S2 + .2, S3 + .3));
+    if (win(t, S2 + .2, S3 + .3)) {
+      bT.style.transform = P(540, 300); bT.reveal(t, S2 + .2, .03);
+      ROWS.forEach((r, i) => {
+        const o = cards[i], k = spring(t - r.t, 13, .65);
+        on(o.c, t > r.t - .02); o.c.style.transform = P(lerp(1700, 540, k), 560 + i * 300) + ` rotate(${(1 - k) * 6 + (i - 1) * 1.2}deg)`;
+        const fk = spring(t - r.ta, 16, .5), vk = spring(t - r.tv, 16, .5);
+        o.fp.style.transform = `scale(${t > r.ta ? lerp(1.5, 1, fk) : 0})`; o.ar.style.opacity = seg(t, r.tv - .2, r.tv); o.vp.style.transform = `scale(${t > r.tv ? lerp(1.5, 1, vk) : 0})`;
+      });
+    }
+    fC(t);
+    // S3
+    on(Cc, win(t, S3 + .2, S4 + .3));
+    if (win(t, S3 + .2, S4 + .3)) {
+      cT.style.transform = P(540, 330); cT.reveal(t, S3 + .2, .03);
+      gK.style.transform = P(540, 640); gK.style.opacity = seg(t, S3 + .3, S3 + .5);
+      gauge.style.transform = P(540, 760) + ` scale(${spring(t - S3 - .3, 14, .7)})`;
+      const p = easeOut(seg(t, S3 + .6, T.rent)), n = Math.round(lerp(0, 370, p));
+      gFill.style.width = `${Math.min(100, n / 79 * 100)}%`;
+      gLab.textContent = `+${n} € / 79 €`; gLab.style.transform = P(540, 760);
+      gauge.style.boxShadow = n >= 79 ? `0 0 ${20 + 40 * Math.sin(t * 12) ** 2}px ${C.ink}` : 'none';
+      const sk = spring(t - T.rent, 16, .45);
+      on(stamp, t > T.rent - .02); stamp.style.transform = P(540, 1060) + ` rotate(-6deg) scale(${lerp(2.6, 1, sk)})`; stamp.style.opacity = clamp(sk * 2);
+    }
+    const fl = win(t, T.rent, T.rent + .15) ? .4 * (1 - seg(t, T.rent, T.rent + .15)) : 0; on(flash, fl > 0); flash.style.opacity = fl;
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_calc79.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.2, .6, .3); s.impact(.4, .6); s.stamp(T.cher, .9); s.buzz(T.cher + .05, .1);
+  s.whoosh(S2, .3, .3, -.5); s.stamp(S2 + .25, .4);
+  ROWS.forEach((r, i) => { s.whoosh(r.t, .3, .25, .4); s.pop(r.ta, 800, .25); s.cash(r.tv, .22); });
+  s.riser(S3 - .5, S3 + .25, .18); s.impact(S3 + .25, .7);
+  for (let x = S3 + .6; x < T.rent; x += .05) s.tick(x, 1500 + (x - S3) * 500, .05);
+  s.stamp(T.rent, .9); s.ding(T.rent + .1, .2);
+  s.riser(S4 - .4, S4 + .25, .15); s.impact(S4 + .25, .8); s.whoosh(S4 + .3, .5, .3); s.pop(T.lien + .1, 700, .3); s.ringout(T.lien + .4);
+};
+init();
+</script>
+</body></html>
