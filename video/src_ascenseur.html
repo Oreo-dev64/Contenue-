@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>L ascenseur — Fournisseur 79€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 16 — « L'ASCENSEUR » (ensemble Nike Zabuza bleu)   voix : voix_ascenseur.mp3
+   S1  Vraie photo 3D + « 260 € SUR VINTED » + extrait réel de l'annonce
+   S2  Ascenseur : l'afficheur descend 260 → 200 → 100 → 50 (flèche ▼ qui clignote)
+   S3  DING : les portes s'ouvrent sur 35 € + la vraie photo, « LIVRAISON COMPRISE »
+   S4  Fin : 79€ — fournisseur + groupe privé — LIEN EN BIO
+   ===================================================================== */
+const IMG = "assets/vinted_zabuza.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("ascenseur");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { p1: wt('^deux$', 0, ''), desc: wt('^descend'), f200: wt('^Deux', 0, ''), f100: wt('^cent\\.'), f50: wt('^cinquante'), f35: wt('^Trente-cinq'), liv: wt('^Livraison'), end: wt('^Le$', 0, ''), lien: wt('^lien') };
+const S2 = T.desc - .5, S4 = T.end - .15;
+const FLOORS = [[0, '260'], [T.f200, '200'], [T.f100, '100'], [T.f50, '50'], [T.f35, '35']];
+const BG = [[0, C.ink], [S2 + .25, C.blue], [S4 + .25, C.lime]];
+const HITS = [[.1, 14], [T.p1 + .3, 14], [S2 + .25, 12], [T.f200, 8], [T.f100, 8], [T.f50, 8], [T.f35, 24], [S4 + .25, 16]];
+const SCENES = [[0, 'VINTED'], [S2, 'ON DESCEND'], [T.f35, 'FOURNISSEUR'], [S4, 'FOURNISSEUR 79 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+  // S1
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const aK = Tx(A, 'ENSEMBLE NIKE ZABUZA', `font:500 34px JM;letter-spacing:.24em;color:${C.cream}`);
+  const aP = Tx(A, '0 €', `font:240px AB;color:${C.lime};letter-spacing:-.05em`);
+  const aS = Tx(A, 'SUR VINTED', `font:500 30px JM;letter-spacing:.3em;color:${C.cream};border:2px solid rgba(237,235,228,.5);border-radius:40px;padding:10px 22px`);
+  const photo = Crop(A, IMG, IW, IH, 35, 544, 550, 925, 380, `border-radius:26px;border:8px solid #fff;box-shadow:0 40px 80px rgba(0,0,0,.5)`);
+  const proof = Crop(A, IMG, IW, IH, 51, 1696, 1063, 304, 560, `border-radius:18px;border:4px solid ${C.cream};box-shadow:0 20px 40px rgba(0,0,0,.5)`);
+  const wB = E(world, `width:2400px;height:1920px;background:${C.blue};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+  // S2/S3 ascenseur
+  const B = E(world, '', '', 'full');
+  const bT = MW(B, 'ON DESCEND ?', `font:110px AB;color:#fff;letter-spacing:-.03em`);
+  const shaft = E(B, `width:820px;height:980px;border-radius:30px;background:linear-gradient(180deg,#4A4E58,#2B2D31);box-shadow:0 40px 80px rgba(0,0,0,.45);padding:30px`, '', 'L');
+  const disp = E(shaft, `position:relative;margin:0 auto;width:520px;height:170px;border-radius:20px;background:#08080A;box-shadow:inset 0 0 0 6px #1E1F22;display:flex;align-items:center;justify-content:center;gap:24px`, '');
+  const arrow = E(disp, `font:80px AB;color:${C.red}`, '▼');
+  const dNum = E(disp, `font:500 120px JM;color:${C.red};letter-spacing:.04em;text-shadow:0 0 18px rgba(255,59,48,.7)`, '260');
+  const dEu = E(disp, `font:500 80px JM;color:${C.red}`, '€');
+  const cab = E(shaft, `position:relative;margin:30px auto 0;width:700px;height:700px;border-radius:12px;overflow:hidden;background:${C.lime}`, '');
+  const inside = E(cab, `position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px`, '');
+  const inPhoto = Crop(inside, IMG, IW, IH, 35, 544, 550, 925, 260, `position:relative;border-radius:18px;border:6px solid ${C.ink}`);
+  E(inside, `font:500 26px JM;letter-spacing:.24em;color:${C.ink}`, 'CHEZ MON FOURNISSEUR');
+  const inPrice = E(inside, `font:170px AB;color:${C.ink};letter-spacing:-.05em;line-height:1`, '35 €');
+  const doorL = E(cab, `position:absolute;left:0;top:0;width:350px;height:700px;background:linear-gradient(90deg,#B9BDC6,#E3E5EA 60%,#A5A9B2);box-shadow:inset -4px 0 0 #7C808A`);
+  const doorR = E(cab, `position:absolute;left:350px;top:0;width:350px;height:700px;background:linear-gradient(90deg,#A5A9B2,#E3E5EA 40%,#B9BDC6);box-shadow:inset 4px 0 0 #7C808A`);
+  const liv = Tx(B, 'LIVRAISON COMPRISE', `font:60px AB;color:${C.ink};background:${C.lime};border-radius:40px;padding:18px 38px 12px;box-shadow:0 18px 34px rgba(0,0,0,.35)`);
+  const fE = Flood(world, C.lime, 540, 900, S4, S4 + .25);
+  const end = EndCard(world, S4 + .25, { tPill: T.lien, price: '79€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'FOURNISSEUR — 79 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // S1
+    on(A, t < S2 + .3);
+    if (t < S2 + .3) {
+      aK.style.transform = P(540, 290); aK.style.opacity = seg(t, .05, .3);
+      const pk = spring(t - T.p1, 15, .5);
+      on(aP, t > T.p1); aP.textContent = `${Math.round(lerp(0, 260, easeOut(seg(t, T.p1, T.p1 + .5))))} €`;
+      aP.style.transform = P(540, 450) + ` scale(${lerp(1.5, 1, pk)})`;
+      on(aS, t > T.p1 + .5); aS.style.transform = P(540, 600) + ` scale(${spring(t - T.p1 - .55, 16, .6)})`;
+      const k = spring(t - .05, 9, .72);
+      photo.style.transform = `translate(540px,${lerp(1800, 960, k)}px) translate(-50%,-50%) rotateY(${lerp(60, 8, k) + Math.sin(t * 1.3) * 4}deg) rotateZ(${lerp(10, 3, k)}deg)`;
+      const prk = spring(t - T.p1 - .3, 11, .8);
+      on(proof, t > T.p1 + .2); proof.style.transform = P(700, lerp(1500, 1280, prk)) + ` rotate(-3deg)`; proof.style.opacity = clamp(prk * 2);
+    }
+    on(wB, win(t, S2, S2 + .3)); if (win(t, S2, S2 + .3)) wB.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, S2, S2 + .25)))}px,0)`;
+    // S2/S3
+    on(B, win(t, S2 + .2, S4 + .3));
+    if (win(t, S2 + .2, S4 + .3)) {
+      bT.style.transform = P(540, 300); bT.reveal(t, T.desc - .1, .03);
+      const sk = spring(t - S2 - .25, 10, .75);
+      shaft.style.transform = `translate(540px,${lerp(1900, 900, sk)}px) translate(-50%,-50%)`;
+      let fl = FLOORS[0]; FLOORS.forEach(f => { if (t >= f[0] - .02 && f[0] > 0) fl = f; });
+      dNum.textContent = fl[1];
+      const arrived = t >= T.f35;
+      arrow.style.opacity = arrived ? 0 : (Math.floor(t * 4) % 2 ? 1 : .25);
+      [dNum, dEu].forEach(e => { e.style.color = arrived ? C.lime : C.red; e.style.textShadow = `0 0 18px ${arrived ? 'rgba(198,255,61,.7)' : 'rgba(255,59,48,.7)'}`; });
+      const bump = FLOORS.slice(1).reduce((a, f) => a + (t > f[0] ? 10 * Math.exp(-(t - f[0]) * 8) * Math.sin((t - f[0]) * 40) : 0), 0);
+      dNum.style.transform = `translateY(${bump}px)`;
+      const open = ease(seg(t, T.f35 + .1, T.f35 + .6));
+      doorL.style.transform = `translateX(${-open * 350}px)`; doorR.style.transform = `translateX(${open * 350}px)`;
+      inPrice.style.transform = `scale(${t > T.f35 + .3 ? lerp(1.4, 1, spring(t - T.f35 - .3, 16, .5)) : 1})`;
+      const lk = spring(t - T.liv, 16, .55);
+      on(liv, t > T.liv - .02); liv.style.transform = P(540, 1330) + ` rotate(-4deg) scale(${lk})`;
+    }
+    const fl2 = win(t, T.f35, T.f35 + .15) ? .35 * (1 - seg(t, T.f35, T.f35 + .15)) : 0; on(flash, fl2 > 0); flash.style.opacity = fl2;
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_ascenseur.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.2, .6, .3); for (let x = T.p1; x < T.p1 + .5; x += .04) s.tick(x, 1800 + (x - T.p1) * 2500, .06); s.impact(T.p1 + .3, .4);
+  s.whoosh(S2, .3, .3, -.5); s.stamp(S2 + .25, .4);
+  s.tone(T.desc, Math.max(.5, T.f35 - T.desc), 'sine', 70, 55, .12, .3);
+  [T.f200, T.f100, T.f50].forEach((x, i) => { s.tone(x, .12, 'sine', 880 - i * 120, 860 - i * 120, .14, .005); s.tick(x, 1200, .1); });
+  s.ding(T.f35, .35); s.impact(T.f35, .6); s.noise(T.f35 + .1, .5, 'bandpass', 400, 1200, .2, 1);
+  s.pop(T.liv, 700, .3);
+  s.riser(S4 - .5, S4 + .25, .15); s.impact(S4 + .25, .8); s.whoosh(S4 + .3, .5, .3); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>

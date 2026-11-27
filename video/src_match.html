@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Le match — Fournisseur 79€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 15 — « LE MATCH » (veste Under Armour)   voix : voix_match.mp3
+   S1  Vraie photo 3D + « 130 € SUR VINTED » + extrait réel de l'annonce
+   S2  ♥ 22 : cœurs qui s'envolent
+   S3  Flood vert : « MOI » + 25€ 3D
+   S4  Ring : VINTED 130 € (rouge) VS FOURNISSEUR 25 € (vert), éclair VS, coups → K.O.
+   S5  Fin : 79€ — fournisseur + groupe privé — LIEN EN BIO
+   ===================================================================== */
+const IMG = "assets/vinted_ua.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("match");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { p1: wt('^cent$', 0), fav: wt('^Vingt-deux'), moi: wt('^Moi'), p25: wt('^vingt-cinq', 0), vs: wt('^Vinted', 1), ko1: wt('^cent$', 1), ko2: wt('^vingt-cinq', 1), end: wt('^Le$', 0, '') , lien: wt('^lien') };
+const S2 = T.fav - .1, S3 = T.moi - .15, S4 = T.vs - .15, S5 = T.end - .15;
+const BG = [[0, C.ink], [S3 + .25, C.lime], [S4 + .2, C.ink], [S5 + .25, C.lime]];
+const HITS = [[.1, 14], [T.p1, 16], [S3 + .25, 18], [T.p25 + .2, 22], [S4 + .3, 14], [T.ko1, 18], [T.ko2, 28], [S5 + .25, 16]];
+const SCENES = [[0, 'VINTED'], [S2, 'FAVORIS'], [S3, 'FOURNISSEUR'], [S4, 'LE MATCH'], [S5, 'FOURNISSEUR 79 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(15);
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+  // S1/S2
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const aK = Tx(A, 'VESTE UNDER ARMOUR', `font:500 34px JM;letter-spacing:.26em;color:${C.cream}`);
+  const aP = Tx(A, '0 €', `font:240px AB;color:${C.lime};letter-spacing:-.05em`);
+  const aS = Tx(A, 'SUR VINTED', `font:500 30px JM;letter-spacing:.3em;color:${C.cream};border:2px solid rgba(237,235,228,.5);border-radius:40px;padding:10px 22px`);
+  const photo = Crop(A, IMG, IW, IH, 35, 563, 550, 927, 380, `border-radius:26px;border:8px solid #fff;box-shadow:0 40px 80px rgba(0,0,0,.5)`);
+  const proof = Crop(A, IMG, IW, IH, 51, 1722, 1063, 297, 560, `border-radius:18px;border:4px solid ${C.cream};box-shadow:0 20px 40px rgba(0,0,0,.5)`);
+  const fav = E(A, 'display:flex;align-items:center;gap:14px;width:max-content', `<svg viewBox="0 0 100 90" width="110" height="99"><path d="M50 86 C20 62 4 46 4 26 C4 12 15 2 28 2 C38 2 45 8 50 16 C55 8 62 2 72 2 C85 2 96 12 96 26 C96 46 80 62 50 86 Z" fill="${C.red}"/></svg><span style="font:130px AB;color:${C.cream};line-height:1">0</span>`, 'L');
+  const favN = fav.querySelector('span');
+  const hearts = Array.from({ length: 22 }, () => ({ e: E(A, '', `<svg viewBox="0 0 100 90" width="50" height="45"><path d="M50 86 C20 62 4 46 4 26 C4 12 15 2 28 2 C38 2 45 8 50 16 C55 8 62 2 72 2 C85 2 96 12 96 26 C96 46 80 62 50 86 Z" fill="${C.red}"/></svg>`, 'L'), dx: (R() - .5) * 700, sp: 500 + R() * 600, d: R() * 1.0, w: R() * 6 }));
+  const fB = Flood(world, C.lime, 540, 900, S3, S3 + .25);
+  // S3
+  const B = E(world, 'perspective:1800px', '', 'full');
+  const bM = MW(B, 'MOI, JE TE LA TROUVE À', `font:72px AB;color:${C.ink};letter-spacing:-.02em`);
+  const ext = EXT(B, '25€', 420, 26, 120, C.ink, '#3E4A12', '#1C2208');
+  const shot = Crop(B, IMG, IW, IH, 35, 563, 550, 927, 220, `border-radius:20px;border:6px solid ${C.ink}`);
+  // S4 ring
+  const Cc = E(world, '', '', 'full');
+  const ring = E(Cc, `left:0;top:0;width:1080px;height:1920px;background:repeating-linear-gradient(0deg,transparent 0 380px,rgba(255,255,255,.08) 380px 392px)`, '', 'L');
+  const left = E(Cc, `width:540px;height:820px;padding-right:90px;background:${C.red};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px`, `<div style="font:500 30px JM;letter-spacing:.3em;color:#fff">VINTED</div><div style="font:140px AB;color:#fff;letter-spacing:-.05em;line-height:1">130</div><div style="font:90px AB;color:#fff;line-height:1">€</div>`, 'L');
+  const right = E(Cc, `width:540px;height:820px;padding-left:90px;background:${C.lime};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px`, `<div style="font:500 30px JM;letter-spacing:.3em;color:${C.ink}">FOURNISSEUR</div><div style="font:140px AB;color:${C.ink};letter-spacing:-.05em;line-height:1">25</div><div style="font:90px AB;color:${C.ink};line-height:1">€</div>`, 'L');
+  const vs = E(Cc, `width:190px;height:190px;border-radius:50%;background:${C.ink};border:10px solid #fff;display:flex;align-items:center;justify-content:center;font:110px AB;color:#fff;letter-spacing:-.04em`, 'VS', 'L');
+  const bolt = E(Cc, '', svg('0 0 100 300', `<path d="M60 0 L10 160 L48 160 L30 300 L92 120 L54 120 L80 0 Z" fill="#FFD23F" stroke="${C.ink}" stroke-width="6" stroke-linejoin="round"/>`, 130, 390), 'L');
+  const cT = MW(Cc, 'LE MATCH', `font:120px AB;color:#fff;letter-spacing:-.03em`);
+  const ko = Tx(Cc, 'K.O.', `font:260px AB;color:#FFD23F;letter-spacing:-.04em;-webkit-text-stroke:10px ${C.ink};paint-order:stroke fill`);
+  const shards = Array.from({ length: 14 }, (_, i) => ({ e: E(Cc, `width:${60 + R() * 120}px;height:${60 + R() * 120}px;background:${C.red};clip-path:polygon(${R() * 40}% 0,100% ${R() * 40}%,${60 + R() * 40}% 100%,0 ${60 + R() * 40}%)`, '', 'L'), x: 60 + R() * 420, y: 560 + R() * 820, vx: (R() - .8) * 900, vy: -300 - R() * 600, r: (R() - .5) * 900 }));
+  const fE = Flood(world, C.lime, 540, 900, S5, S5 + .25);
+  const end = EndCard(world, S5 + .25, { tPill: T.lien, price: '79€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'FOURNISSEUR — 79 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // S1/S2
+    on(A, t < S3 + .3);
+    if (t < S3 + .3) {
+      aK.style.transform = P(540, 290); aK.style.opacity = seg(t, .05, .3);
+      const pk = spring(t - T.p1, 15, .5);
+      on(aP, t > T.p1 && t < S2 + .2); aP.textContent = `${Math.round(lerp(0, 130, easeOut(seg(t, T.p1, T.p1 + .45))))} €`;
+      aP.style.transform = P(540, 450) + ` scale(${lerp(1.5, 1, pk) * (1 - easeIn(seg(t, S2, S2 + .2)))})`;
+      on(aS, t > T.p1 + .5 && t < S2 + .2); aS.style.transform = P(540, 600) + ` scale(${spring(t - T.p1 - .55, 16, .6)})`;
+      const k = spring(t - .05, 9, .72);
+      photo.style.transform = `translate(${lerp(540, 300, ease(seg(t, S2 - .2, S2 + .2)))}px,${lerp(1800, 960, k)}px) translate(-50%,-50%) rotateY(${lerp(60, 8, k) + Math.sin(t * 1.3) * 4}deg) rotateZ(${lerp(10, 3, k)}deg)`;
+      const prk = spring(t - T.p1 - .3, 11, .8);
+      on(proof, t > T.p1 + .2 && t < S2 + .3); proof.style.transform = P(700, lerp(1500, 1280, prk)) + ` rotate(-3deg)`; proof.style.opacity = clamp(prk * 2) * (1 - seg(t, S2, S2 + .25));
+      const fk = spring(t - T.fav, 16, .5);
+      on(fav, t > T.fav - .05); favN.textContent = String(Math.round(lerp(0, 22, easeOut(seg(t, T.fav, T.fav + .5))))); fav.style.transform = P(760, 500) + ` scale(${lerp(1.6, 1, fk) * clamp(fk * 2)})`;
+      hearts.forEach(h => { const d = t - T.fav - h.d * .5; on(h.e, d > 0 && d < 1.5); if (d > 0) { h.e.style.transform = `translate(${760 + h.dx * easeOut(d / 1.5) + Math.sin(d * h.w) * 30}px,${900 - h.sp * d}px) scale(${spring(d, 18, .6)})`; h.e.style.opacity = 1 - seg(d, 1.0, 1.5); } });
+    }
+    fB(t);
+    // S3
+    on(B, win(t, S3 + .2, S4 + .3));
+    if (win(t, S3 + .2, S4 + .3)) {
+      bM.style.transform = P(540, 330); bM.reveal(t, S3 + .2, .02);
+      const k = spring(t - T.p25 + .25, 9, .62), sway = Math.sin((t - T.p25) * 1.8) * 14 * seg(t, T.p25, T.p25 + .5);
+      ext.style.transform = `translate(540px,800px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+      const sk = spring(t - T.p25 - .3, 14, .6);
+      on(shot, t > T.p25 + .2); shot.style.transform = P(840, 1170) + ` rotate(${lerp(30, 8, sk)}deg) scale(${sk})`;
+    }
+    const fl = Math.max(win(t, T.p25 + .2, T.p25 + .35) ? .4 * (1 - seg(t, T.p25 + .2, T.p25 + .35)) : 0, win(t, T.ko2, T.ko2 + .15) ? .6 * (1 - seg(t, T.ko2, T.ko2 + .15)) : 0); on(flash, fl > 0); flash.style.opacity = fl;
+    // S4
+    on(Cc, win(t, S4 + .1, S5 + .3));
+    if (win(t, S4 + .1, S5 + .3)) {
+      cT.style.transform = P(540, 300); cT.reveal(t, S4 + .15, .04);
+      const lk = spring(t - S4 - .15, 12, .7), rk = spring(t - S4 - .3, 12, .7);
+      const punch1 = t > T.ko1 ? 30 * Math.exp(-(t - T.ko1) * 6) * Math.sin((t - T.ko1) * 25) : 0;
+      const kd = Math.max(0, t - T.ko2);
+      on(left, kd < .05); left.style.transform = `translate(${lerp(-600, 0, lk) + punch1}px,560px)`;
+      right.style.transform = `translate(${lerp(1100, 540, rk) - (t > T.ko2 - .15 && t < T.ko2 + .1 ? 80 * Math.sin(seg(t, T.ko2 - .15, T.ko2 + .1) * Math.PI) : 0)}px,560px)`;
+      const vk = spring(t - S4 - .5, 16, .45);
+      vs.style.transform = P(540, 970) + ` scale(${lerp(2.4, 1, vk) * clamp(vk * 2)}) rotate(${(1 - vk) * -30}deg)`;
+      on(bolt, t > S4 + .45 && t < S4 + .9); bolt.style.transform = P(540, 970) + ` rotate(12deg) scale(${1 + Math.sin(t * 60) * .1})`;
+      shards.forEach(sd => { on(sd.e, kd > 0 && kd < 1.2); if (kd > 0) { sd.e.style.transform = `translate(${sd.x + sd.vx * kd}px,${sd.y + sd.vy * kd + 1800 * kd * kd}px) rotate(${sd.r * kd}deg)`; } });
+      const kk = spring(t - T.ko2 - .05, 16, .45);
+      on(ko, t > T.ko2); ko.style.transform = P(300, 1010) + ` rotate(-10deg) scale(${lerp(2.6, 1, kk)})`; ko.style.opacity = clamp(kk * 2);
+    }
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_match.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.2, .6, .3); for (let x = T.p1; x < T.p1 + .45; x += .04) s.tick(x, 1800 + (x - T.p1) * 2500, .06); s.impact(T.p1 + .3, .4);
+  for (let x = T.fav; x < T.fav + .5; x += .05) s.pop(x, 900 + (x - T.fav) * 1500, .08);
+  s.riser(S3 - .5, S3 + .25, .15); s.impact(S3 + .25, .7); s.whoosh(T.p25 - .2, .5, .3); s.impact(T.p25 + .2, .8);
+  s.whoosh(S4, .35, .3); s.tone(S4 + .3, .6, 'square', 900, 880, .08, .005); s.tone(S4 + .35, .6, 'square', 1200, 1180, .06, .005);
+  s.impact(S4 + .5, .6); s.noise(S4 + .45, .3, 'highpass', 3000, 6000, .3, 1);
+  s.impact(T.ko1, .6); s.stamp(T.ko1 + .05, .5);
+  s.impact(T.ko2, 1.0); s.noise(T.ko2, .5, 'lowpass', 4000, 300, .5, 1); s.ding(T.ko2 + .1, .3); s.ding(T.ko2 + .35, .25); s.ding(T.ko2 + .6, .2);
+  s.riser(S5 - .5, S5 + .25, .15); s.impact(S5 + .25, .8); s.whoosh(S5 + .3, .5, .3); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>
