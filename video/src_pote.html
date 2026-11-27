@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Il m a pas cru — Fournisseur 49€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 17 — « IL M'A PAS CRU » (storytime en messages, veste Nike ADV)   voix : voix_pote.mp3
+   Conversation (mode sombre) synchronisée sur la voix :
+   « elle est trop propre ta veste » / « payée combien ? » → « 30 € » → « arrête de mentir mdr »
+   → capture réelle de l'annonce Vinted 135 € + ♥ 186 → « attends QUOI » → carte « Fournisseur — 49 € »
+   → « je prends direct ». Gros stickers 3D par-dessus aux moments clés. Fin : 49€ + LIEN EN BIO.
+   ===================================================================== */
+const IMG = "assets/vinted_adv.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("pote");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { dem: wt('^demandé'), p30: wt('^trente$'), cru: wt('^cru'), pour: wt('^Pourtant'), p135: wt('^cent$', 0), fav: wt('^favori'), alors: wt('^Alors'), donne: wt('^donné'), q49: wt('^Quarante'), tout: wt('^tout'), lien: wt('^lien') };
+const SE = T.lien - .55;
+const BG = [[0, C.ink], [SE + .25, C.lime]];
+const HITS = [[T.p30, 18], [T.cru, 10], [T.p135, 16], [T.fav, 10], [T.q49, 20], [SE + .25, 16]];
+const SCENES = [[0, 'STORYTIME'], [T.pour, 'LA PREUVE'], [T.alors, 'LE FOURNISSEUR'], [SE, 'FOURNISSEUR 49 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+  const C1 = E(world, 'perspective:1600px', '', 'full');
+  // en-tête conversation
+  const head = E(C1, `width:1080px;height:200px;background:#16171C;border-bottom:2px solid #2B2D31;display:flex;align-items:flex-end;gap:22px;padding:0 50px 26px`, `<div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,${C.blue},#7B8CFF);display:flex;align-items:center;justify-content:center;font:48px AB;color:#fff">M</div><div><div style="font:700 38px IT;color:#fff">Mon pote</div><div style="font:500 24px IT;color:#1BAF5D">● en ligne</div></div>`, 'L');
+  const chat = E(C1, 'width:1080px;height:1920px', '', 'L');
+  const MSG = [
+    ['L', 'elle est trop propre ta veste', .1],
+    ['L', 'tu l\'as payée combien ?', T.dem],
+    ['R', '30 €', T.p30],
+    ['L', 'arrête de mentir mdr', T.cru],
+    ['RP', '', T.pour],
+    ['L', 'attends… QUOI', T.fav + .6],
+    ['L', 'c\'est quoi ton fournisseur ???', T.alors],
+    ['RC', '', T.donne],
+    ['L', 'je prends direct', T.tout],
+  ];
+  const bubbles = MSG.map(([side, txt]) => {
+    if (side === 'RP') return E(chat, `padding:10px;background:${C.lime};border-radius:30px 30px 8px 30px;width:max-content`, `<div style="display:flex;gap:10px">${''}</div>`, 'L');
+    if (side === 'RC') return E(chat, `width:620px;border-radius:30px 30px 8px 30px;background:${C.lime};padding:22px 26px;display:flex;gap:20px;align-items:center`, `<div style="flex:none;width:110px;height:110px;border-radius:24px;background:${C.ink};display:flex;align-items:center;justify-content:center;font:60px AB;color:${C.lime}">F</div><div><div style="font:500 22px JM;letter-spacing:.2em;color:${C.ink}">LIEN</div><div style="font:52px AB;color:${C.ink};line-height:1.05">Fournisseur</div><div style="font:44px AB;color:${C.ink}">49 € · tout dedans</div></div>`, 'L');
+    return E(chat, `max-width:760px;padding:26px 36px;font:${txt.length < 6 ? '90px AB' : '600 44px IT'};color:${side === 'R' ? C.ink : '#fff'};background:${side === 'R' ? C.lime : '#2B2D31'};border-radius:${side === 'R' ? '36px 36px 8px 36px' : '36px 36px 36px 8px'};width:max-content;line-height:1.15`, txt, 'L');
+  });
+  // capture réelle dans la bulle « preuve »
+  const proofWrap = bubbles[4].firstChild;
+  Crop(proofWrap, IMG, IW, IH, 35, 535, 550, 927, 200, 'position:relative;border-radius:20px');
+  Crop(proofWrap, IMG, IW, IH, 51, 1696, 1063, 298, 400, 'position:relative;border-radius:20px;align-self:center');
+  const typing = E(chat, `background:#2B2D31;border-radius:36px;padding:28px 34px;display:flex;gap:14px;width:max-content`, [0, 1, 2].map(() => `<div style="width:20px;height:20px;border-radius:50%;background:#B5BAC1"></div>`).join(''), 'L');
+  const dots = [...typing.children];
+  const inputBar = E(C1, `width:1000px;height:100px;border-radius:50px;background:#2B2D31;display:flex;align-items:center;padding:0 36px;font:500 32px IT;color:#80848E`, 'Message…', 'L');
+  // stickers
+  const st30 = Tx(world, '30 € ?!', `font:150px AB;color:${C.ink};background:${C.lime};padding:16px 40px 8px;border-radius:28px;box-shadow:0 24px 50px rgba(0,0,0,.4)`);
+  const st135 = E(world, `display:flex;align-items:center;gap:18px;background:#fff;padding:18px 36px 14px;border-radius:28px;box-shadow:0 24px 50px rgba(0,0,0,.4);width:max-content`, `<span style="font:500 26px JM;letter-spacing:.2em;color:${C.ink}">SUR VINTED</span><span style="font:110px AB;color:${C.ink};line-height:1">135 €</span>`, 'L');
+  const stFav = E(world, 'display:flex;align-items:center;gap:14px;width:max-content;background:rgba(11,11,16,.85);border-radius:50px;padding:14px 30px 14px 20px', `<svg viewBox="0 0 100 90" width="80" height="72"><path d="M50 86 C20 62 4 46 4 26 C4 12 15 2 28 2 C38 2 45 8 50 16 C55 8 62 2 72 2 C85 2 96 12 96 26 C96 46 80 62 50 86 Z" fill="${C.red}"/></svg><span style="font:90px AB;color:#fff;line-height:1">186</span>`, 'L');
+  const fE = Flood(world, C.lime, 540, 900, SE, SE + .25);
+  const end = EndCard(world, SE + .25, { tPill: T.lien, price: '49€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'FOURNISSEUR — 49 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1, y: 1560 });
+
+  let heights = null;
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    if (!heights) heights = bubbles.map(b => { const d = b.style.display; b.style.display = ''; const h = b.offsetHeight; b.style.display = d; return h; });
+    on(C1, t < SE + .3);
+    if (t < SE + .3) {
+      head.style.transform = `translate(0,${(1 - spring(t, 12, .8)) * -220}px)`;
+      inputBar.style.transform = `translate(40px,${lerp(1950, 1380, spring(t, 12, .8))}px)`;
+      // empilement depuis le bas : la conversation remonte quand un message arrive
+      const BOTTOM = 1350; let y = BOTTOM, shown = [];
+      MSG.forEach((m, i) => { if (t >= m[2]) shown.push(i); });
+      // indicateur de frappe avant chaque message de gauche
+      const next = MSG.find(m => m[2] > t), typingOn = next && next[0] === 'L' && next[2] - t < .8 && next[2] - t > 0;
+      let off = typingOn ? 110 : 0;
+      on(typing, !!typingOn); if (typingOn) { typing.style.transform = `translate(50px,${BOTTOM - 90}px)`; dots.forEach((d, i) => d.style.transform = `translateY(${-Math.abs(Math.sin(t * 9 - i * .7)) * 12}px)`); }
+      let acc = off;
+      for (let j = shown.length - 1; j >= 0; j--) {
+        const i = shown[j], m = MSG[i], b = bubbles[i], h = heights[i];
+        const k = spring(t - m[2], 16, .65);
+        acc += h * lerp(0, 1, Math.min(1, k * 1.2)) + 22;
+        const yy = BOTTOM - acc;
+        on(b, yy > 215); b.style.opacity = clamp(k * 2) * seg(yy, 215, 300);
+        const right = m[0] !== 'L';
+        b.style.transform = `translate(${right ? 1030 - b.offsetWidth : 50}px,${yy}px) scale(${lerp(.6, 1, k)})`;
+        b.style.transformOrigin = right ? '100% 100%' : '0 100%';
+        
+      }
+      MSG.forEach((m, i) => { if (!shown.includes(i)) on(bubbles[i], false); });
+    }
+    const k30 = spring(t - T.p30 - .1, 16, .45);
+    on(st30, win(t, T.p30, T.cru + .2)); st30.style.transform = P(700, 560) + ` rotate(-8deg) scale(${lerp(2.4, 1, k30) * (1 - easeIn(seg(t, T.cru, T.cru + .2)))})`;
+    const k135 = spring(t - T.p135, 16, .45);
+    on(st135, win(t, T.p135 - .05, T.alors)); st135.style.transform = P(600, 460) + ` rotate(5deg) scale(${lerp(1.6, 1, k135) * (1 - easeIn(seg(t, T.alors - .25, T.alors)))})`;
+    const kf = spring(t - T.fav + .4, 16, .5);
+    on(stFav, win(t, T.fav - .45, T.alors)); stFav.style.transform = P(330, 620) + ` rotate(-6deg) scale(${kf * (1 - easeIn(seg(t, T.alors - .25, T.alors)))})`;
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_pote.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  const msgT = [.1, T.dem, T.p30, T.cru, T.pour, T.fav + .6, T.alors, T.donne, T.tout];
+  msgT.forEach((x, i) => s.tone(x, .12, 'sine', i % 2 ? 1400 : 1100, i % 2 ? 1700 : 900, .14, .004));
+  s.impact(T.p30 + .1, .5); s.pop(T.cru, 400, .2); s.whoosh(T.pour, .3, .2);
+  s.impact(T.p135, .6); s.cash(T.p135 + .1, .2); for (let x = T.fav - .4; x < T.fav; x += .05) s.pop(x, 900 + (x - T.fav) * 900, .07);
+  s.ding(T.donne, .2); s.impact(T.q49, .5);
+  s.riser(SE - .5, SE + .25, .15); s.impact(SE + .25, .8); s.whoosh(SE + .3, .5, .3); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>

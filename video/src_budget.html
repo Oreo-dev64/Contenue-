@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>100 euros de budget — Fournisseur 49€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 18 — « 100 € DE BUDGET »   voix : voix_budget.mp3
+   S1  Billet de 100 € 3D qui tourne + « QU'EST-CE QUE JE PEUX PRENDRE ? »
+   S2  Caddie : 4 vraies fiches (Zabuza gris 25, Berlin 25, Running Division 20, ADV 30) tombent dedans,
+       la jauge BUDGET descend 100 → 0 → tampon « 100 € PILE ✓ »
+   S3  Les articles sortent en grille 2×2, étiquettes Vinted qui se retournent, compteur → 1 015 € « PLUS DE 1 000 € »
+   S4  Fin : 49€ + LIEN EN BIO
+   ===================================================================== */
+const WORDS = WORDS_JSON("budget");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { q: wt('^Qu'), tot: wt('^Total'), pile: wt('^pile'), vint: wt('^Vinted'), mille: wt('^mille'), four: wt('^Le$', 0, ''), lien: wt('^lien') };
+const ITEMS = [
+  { n: 'ZABUZA GRIS', img: "assets/vinted_zgris.png", crop: [35, 554, 550, 925], t: wt('^Zabuza'), tp: wt('^vingt-cinq', 0), p: 25, v: 400 },
+  { n: 'NIKE RUNNING BERLIN', img: "assets/vinted_berlin.png", crop: [35, 570, 550, 924], t: wt('^Berlin'), tp: wt('^vingt-cinq', 1), p: 25, v: 320 },
+  { n: 'RUNNING DIVISION', img: "assets/vinted_rd.png", crop: [35, 541, 550, 925], t: wt('^Division'), tp: wt('^vingt$'), p: 20, v: 160 },
+  { n: 'VESTE NIKE ADV', img: "assets/vinted_adv.png", crop: [35, 535, 550, 927], t: wt('^ADV'), tp: wt('^trente'), p: 30, v: 135 },
+];
+const S2 = ITEMS[0].t - .3, S3 = T.vint - .2, S4 = T.four - .2;
+const BG = [[0, C.ink], [S2 + .25, C.blue], [S3 + .25, C.ink], [S4 + .25, C.lime]];
+const HITS = [[.2, 14], ...ITEMS.map(it => [it.tp + .25, 12]), [T.pile, 20], [S3 + .25, 12], [T.mille, 24], [S4 + .25, 16]];
+const SCENES = [[0, 'BUDGET 100 €'], [S2, 'LE CADDIE'], [S3, 'SUR VINTED'], [S4, 'FOURNISSEUR 49 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(18);
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+  // S1 billet
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const aK = Tx(A, "J'AI", `font:500 40px JM;letter-spacing:.3em;color:${C.cream}`);
+  const note = E(A, 'width:640px;height:320px', '', 'L p3');
+  const nf = E(note, `position:absolute;inset:0;border-radius:24px;background:linear-gradient(135deg,#7FD1A2,#3FA36C);box-shadow:inset 0 0 0 14px rgba(255,255,255,.35),0 30px 60px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:space-between;padding:0 50px;backface-visibility:hidden`, `<span style="font:150px AB;color:#0E3B22;letter-spacing:-.05em">100</span><span style="width:150px;height:150px;border-radius:50%;border:10px solid rgba(14,59,34,.5);display:flex;align-items:center;justify-content:center;font:90px AB;color:#0E3B22">€</span>`);
+  E(note, `position:absolute;inset:0;border-radius:24px;background:linear-gradient(135deg,#3FA36C,#7FD1A2);transform:rotateY(180deg);backface-visibility:hidden;display:flex;align-items:center;justify-content:center;font:150px AB;color:#0E3B22`, '€ 100');
+  const aQ = MW(A, "QU'EST-CE QUE", `font:96px AB;color:#fff;letter-spacing:-.03em`);
+  const aQ2 = MW(A, 'JE PEUX PRENDRE ?', `font:96px AB;color:${C.lime};letter-spacing:-.03em`);
+  const wB = E(world, `width:2400px;height:1920px;background:${C.blue};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+  // S2 caddie
+  const B = E(world, 'z-index:0', '', 'full');
+  const bar = E(B, `width:900px;height:120px;border-radius:60px;background:rgba(11,11,16,.35);border:5px solid #fff;overflow:hidden`, '', 'L');
+  const barFill = E(bar, `height:100%;width:100%;background:${C.lime};border-radius:60px`);
+  const barLab = Tx(B, '', `font:52px AB;color:${C.ink};letter-spacing:-.01em`);
+  const cart = E(B, '', svg('0 0 400 320', `<path d="M10 20 H70 L110 220 H340 L380 70 H90" stroke="#fff" stroke-width="22" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M95 70 H372 L340 200 H120 Z" fill="rgba(255,255,255,.15)"/><circle cx="140" cy="280" r="28" fill="#fff"/><circle cx="310" cy="280" r="28" fill="#fff"/>`, 620, 496), 'L');
+  const cards = ITEMS.map(it => {
+    const c = E(B, `width:300px;padding:14px;background:#fff;border-radius:26px;box-shadow:0 24px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;gap:10px`, '', 'L');
+    const [ox, oy, ow, oh] = it.crop; Crop(c, it.img, 1170, 2532, ox, oy, ow, oh, 272, 'position:relative;border-radius:18px');
+    E(c, `font:30px AB;color:${C.ink};white-space:nowrap`, it.n);
+    const tag = E(c, `background:${C.lime};border-radius:18px;padding:8px 22px 4px;font:64px AB;color:${C.ink};line-height:1`, `${it.p} €`);
+    const vt = E(c, `background:${C.ink};border-radius:18px;padding:8px 22px 4px;font:64px AB;color:#fff;line-height:1;display:none`, `${it.v} €`);
+    return { c, tag, vt };
+  });
+  const pile = Tx(B, '100 € PILE ✓', `z-index:9;font:110px AB;color:${C.ink};background:${C.lime};padding:16px 40px 8px;border-radius:26px;box-shadow:0 24px 50px rgba(0,0,0,.35)`);
+  // S3
+  const Cc = E(world, 'z-index:0', '', 'full');
+  const cK = Tx(Cc, 'SUR VINTED, CES 4 ARTICLES', `font:500 32px JM;letter-spacing:.2em;color:${C.cream}`);
+  const cN = Tx(Cc, '0 €', `font:200px AB;color:${C.lime};letter-spacing:-.05em`);
+  const cS = Tx(Cc, 'PLUS DE 1 000 €', `font:96px AB;color:${C.ink};background:#fff;padding:14px 36px 6px;border-radius:24px;box-shadow:0 20px 40px rgba(0,0,0,.4)`);
+  const fE = Flood(world, C.lime, 540, 900, S4, S4 + .25);
+  const end = EndCard(world, S4 + .25, { tPill: T.lien, price: '49€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'FOURNISSEUR — 49 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+  const CARTPOS = [[400, 1080, -10], [560, 1060, 6], [470, 1120, -3], [640, 1110, 10]];
+  const GRID = [[300, 770, -4], [780, 770, 4], [300, 1160, 3], [780, 1160, -3]];
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // S1
+    on(A, t < S2 + .3);
+    if (t < S2 + .3) {
+      aK.style.transform = P(540, 330); aK.style.opacity = seg(t, .05, .25);
+      const k = spring(t - .05, 9, .65);
+      note.style.transform = `translate(540px,${lerp(1800, 700, k)}px) translate(-50%,-50%) rotateX(${10 + Math.sin(t * 2) * 6}deg) rotateY(${lerp(-540, 0, k) + Math.sin(t * 1.4) * 14}deg) rotateZ(${Math.sin(t) * 4}deg)`;
+      aQ.style.transform = P(540, 1020); aQ.reveal(t, T.q, .03);
+      aQ2.style.transform = P(540, 1140); aQ2.reveal(t, T.q + .4, .03);
+    }
+    on(wB, win(t, S2, S2 + .3)); if (win(t, S2, S2 + .3)) wB.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, S2, S2 + .25)))}px,0)`;
+    // S2/S3
+    on(B, win(t, S2 + .2, S4 + .3));
+    if (win(t, S2 + .2, S4 + .3)) {
+      const inV = t >= S3 + .2, outV = ease(seg(t, S3, S3 + .3));
+      on(bar, !inV); on(barLab, !inV); on(cart, t < S3 + .5); on(pile, win(t, T.pile - .05, S3 + .2));
+      let spent = 0; ITEMS.forEach(it => { if (t >= it.tp + .3) spent += it.p; });
+      const sp = ITEMS.reduce((a, it) => a + it.p * easeOut(seg(t, it.tp + .1, it.tp + .45)), 0);
+      bar.style.transform = P(540, 310) + ` scale(${spring(t - S2 - .3, 14, .7)})`;
+      barFill.style.width = `${Math.max(0, 100 - sp)}%`;
+      barLab.textContent = `BUDGET : ${Math.round(100 - sp)} €`; barLab.style.transform = P(540, 310); barLab.style.color = sp > 60 ? '#fff' : C.ink;
+      cart.style.transform = P(540, 1170 + outV * 900) + ` scale(${spring(t - S2 - .4, 12, .65)})`;
+      ITEMS.forEach((it, i) => {
+        const o = cards[i], ek = spring(t - it.t, 13, .65), dk = ease(seg(t, it.tp + .05, it.tp + .45));
+        on(o.c, t > it.t - .02);
+        let [cx, cy, cr] = CARTPOS[i], x = lerp(lerp(1500, 540, ek), cx, dk), y = lerp(720, cy - 120, dk), r = lerp(lerp(15, -3, ek), cr, dk), sc = lerp(.85, .5, dk);
+        const gk = spring(t - S3 - .2 - i * .12, 11, .65);
+        if (t > S3 + .2) { const [gx, gy, gr] = GRID[i]; x = lerp(cx, gx, gk); y = lerp(cy - 120, gy, gk); r = lerp(cr, gr, gk); sc = lerp(.5, .7, gk); }
+        o.c.style.transform = P(x, y) + ` rotate(${r}deg) scale(${sc})`;
+        o.c.style.zIndex = i + 1;
+        const flip = t > S3 + .5 + i * .15;
+        on(o.tag, !flip); on(o.vt, flip);
+        o.vt.style.transform = `scale(${flip ? lerp(1.4, 1, spring(t - S3 - .5 - i * .15, 16, .5)) : 1})`;
+      });
+      const pk = spring(t - T.pile, 16, .45);
+      pile.style.transform = P(540, 720) + ` rotate(-6deg) scale(${lerp(2.4, 1, pk) * (1 - outV)})`; pile.style.opacity = clamp(pk * 2);
+    }
+    // S3 compteur
+    on(Cc, win(t, S3 + .2, S4 + .3));
+    if (win(t, S3 + .2, S4 + .3)) {
+      cK.style.transform = P(540, 300); cK.style.opacity = seg(t, S3 + .25, S3 + .45);
+      cN.textContent = `${Math.round(lerp(0, 1015, easeOut(seg(t, S3 + .5, T.mille))))} €`.replace(/(\d)(\d{3}) €/, '$1 $2 €');
+      cN.style.transform = P(540, 470) + ` scale(${t > T.mille ? lerp(1.3, 1, spring(t - T.mille, 16, .5)) : 1})`;
+      const sk = spring(t - T.mille, 16, .45);
+      on(cS, t > T.mille - .02); cS.style.transform = P(540, 1500 - 470) + ` rotate(-5deg) scale(${lerp(2.4, 1, sk)})`; cS.style.opacity = clamp(sk * 2); cS.style.zIndex = 9;
+    }
+    const fl = win(t, T.mille, T.mille + .15) ? .35 * (1 - seg(t, T.mille, T.mille + .15)) : 0; on(flash, fl > 0); flash.style.opacity = fl;
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_budget.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.2, .6, .3); s.cash(.6, .25); s.pop(T.q, 600, .2);
+  s.whoosh(S2, .3, .3, -.5); s.stamp(S2 + .25, .4);
+  ITEMS.forEach((it, i) => { s.whoosh(it.t, .3, .22, .4); s.pop(it.tp, 800 + i * 100, .25); s.tone(it.tp + .4, .12, 'triangle', 300, 160, .3); s.tick(it.tp + .3, 2200, .1); });
+  s.stamp(T.pile, .8); s.ding(T.pile + .1, .2);
+  s.whooshDown(S3, .4, .3); [0, 1, 2, 3].forEach(i => { s.whoosh(S3 + .2 + i * .12, .25, .15, i % 2 ? .4 : -.4); s.pop(S3 + .5 + i * .15, 900 + i * 120, .2); });
+  for (let x = S3 + .5; x < T.mille; x += .05) s.tick(x, 1500 + (x - S3) * 600, .05); s.cash(T.mille, .3); s.impact(T.mille, .7);
+  s.riser(S4 - .5, S4 + .25, .15); s.impact(S4 + .25, .8); s.whoosh(S4 + .3, .5, .3); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>
