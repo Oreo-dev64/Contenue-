@@ -11,7 +11,7 @@ Toutes les nouveautés : nouveaux articles, nouvelles pépites, nouvelles marque
 Les vrais résultats de la team : premières ventes, soldes Vinted qui montent, retours des membres. Tu fais une vente ? Poste-la ici 🔥
 
 🛍️ **#fournisseur**
-Le fournisseur à **14 €** — running, luxe, streetwear, sneakers : tout est dedans.
+Le fournisseur à **49 €** — running, luxe, streetwear, sneakers : tout est dedans.
 ✅ Tu envoies la photo de l'article + ta taille
 ✅ Tu reçois les **photos QC avant l'envoi**
 ✅ C'est bon → livraison **5 €/kg**, reçu en **6 à 7 jours**

@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bienvenue — Sidorf Team</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO « BIENVENUE » — salon #commence-ici (Discord Sidorf Team)   voix : voix_bienvenue49.mp3
+   S1  Panneau de salons 3D + « SIDORF TEAM » ; clic sur #sidorf-updates
+   S2  #sidorf-updates : cloche qui sonne, posts « nouvel article / nouvelle pépite » qui tombent
+   S3  #résultats-membres : 3 vraies captures de membres en widgets 3D + puces PREMIÈRES VENTES / SOLDES ↑
+   S4  #fournisseur : flood vert, 49€ 3D, stickers running / luxe / streetwear / sneakers
+   S5  #contact : bulle « Une question ? » → réponse « Je te réponds directement ✓ »
+   S6  Fin : BIENVENUE DANS LA SIDORF TEAM + « COMMENCE PAR #fournisseur »
+   Les temps sont lus dans la transcription (wt).
+   ===================================================================== */
+const WORDS = WORDS_JSON("bienvenue49");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2];
+const DUR = Math.ceil(LAST + 2.2);
+const T = { ici: wt('^Ici'), up: wt('^sidorf-updates'), nouv: wt('^nouveaux'), pep: wt('^nouvelles'), res: wt('^résultats-membres'), vrais: wt('^vrais'), prem: wt('^premières'), sold: wt('^soldes'), salon: wt('^salon'), q14: wt('^quarante'), run: wt('^running'), lux: wt('^luxe'), str: wt('^streetwear'), snk: wt('^sneakers'), quest: wt('^Et$'), cont: wt('^contact'), rep: wt('^réponds'), bien2: wt('^Bienvenue', 1) };
+const S2 = T.up + .55, S3 = wt('^Dans$', 1, '') - .15, S4 = wt('^Le$', 0, '') - .15, S5 = T.quest - .15, S6 = T.bien2 - .15;
+const BG = [[0, C.ink], [S2, C.blue], [S3, C.ink], [S4 + .25, C.lime], [S5 + .2, C.blue], [S6, C.ink]];
+const HITS = [[.2, 16], [T.up, 10], [S2, 14], [T.nouv, 8], [T.pep, 8], [S3, 12], [T.prem, 10], [T.sold, 10], [S4 + .25, 18], [T.q14 + .3, 18], [T.run, 8], [T.lux, 8], [T.str, 8], [T.snk, 8], [T.rep, 10], [S6 + .3, 18]];
+const SCENES = [[0, 'BIENVENUE'], [S2, '#SIDORF-UPDATES'], [S3, '#RÉSULTATS-MEMBRES'], [S4, '#FOURNISSEUR'], [S5, '#CONTACT'], [S6, 'SIDORF TEAM']];
+const DG = '#2B2D31', DG2 = '#1E1F22';
+
+function chip(parent, name) {
+  return E(parent, `display:flex;align-items:center;gap:16px;background:${DG};border-radius:60px;padding:16px 36px 16px 22px;width:max-content;box-shadow:0 16px 30px rgba(0,0,0,.35)`, `<span style="font:70px AB;color:${C.lime};line-height:1">#</span><span style="font:58px AB;color:#fff;letter-spacing:-.01em">${name}</span>`, 'L');
+}
+function post(parent, title, body, tag) {
+  return E(parent, `width:860px;background:${DG};border-radius:28px;padding:26px 30px;display:flex;gap:22px;box-shadow:0 20px 40px rgba(0,0,0,.35)`,
+    `<div style="flex:none;width:84px;height:84px;border-radius:50%;background:${C.lime};display:flex;align-items:center;justify-content:center;font:44px AB;color:${C.ink}">S</div><div><div style="display:flex;align-items:center;gap:14px"><span style="font:700 30px IT;color:#fff">SIDORF</span><span style="font:600 18px IT;color:${C.ink};background:${C.lime};border-radius:8px;padding:3px 10px">ADMIN</span><span style="font:500 20px IT;color:#949BA4">aujourd'hui</span></div><div style="font:44px AB;color:${C.lime};margin-top:8px;letter-spacing:-.01em">${title}</div><div style="font:600 30px IT;color:#DBDEE1;margin-top:4px">${body}${tag ? ` <span style="font:40px AB;color:#fff;background:${C.blue};border-radius:12px;padding:2px 14px;margin-left:8px">${tag}</span>` : ''}</div></div>`, 'L');
+}
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(71);
+  const bg = E(stage, '', '', 'full');
+  const world = E(stage, 'perspective:1700px', '', 'full');
+
+  // ===== S1 : panneau =====
+  const A = E(world, 'perspective:1600px', '', 'full');
+  const aK = Tx(A, 'BIENVENUE DANS LA', `font:500 36px JM;letter-spacing:.3em;color:${C.cream}`);
+  const aT = MW(A, 'SIDORF TEAM', `font:140px AB;color:${C.lime};letter-spacing:-.04em`);
+  const panel = E(A, `width:760px;height:820px;border-radius:44px;background:${DG};box-shadow:0 50px 100px rgba(0,0,0,.55);padding:40px 34px`, '', 'L p3');
+  E(panel, '', `<div style="font:56px AB;color:#fff;letter-spacing:-.02em">SIDORF TEAM</div><div style="font:500 26px IT;color:#949BA4;margin-top:6px">Communauté · revente</div><div style="height:2px;background:#3F4147;margin:26px 0 20px"></div>`);
+  const CH = [['commence-ici', 0], ['sidorf-updates', 1], ['résultats-membres', 2], ['fournisseur', 3], ['contact', 4]];
+  const rows = CH.map(([n]) => E(panel, `display:flex;align-items:center;gap:18px;height:96px;border-radius:20px;padding:0 22px;margin-bottom:12px`, `<span style="font:52px AB;color:#80848E">#</span><span style="font:600 40px IT;color:#DBDEE1">${n}</span>`));
+  const cursor = E(A, '', svg('0 0 40 48', `<path d="M4 2 L4 40 L14 30 L22 46 L28 43 L20 28 L34 28 Z" fill="#fff" stroke="${C.ink}" stroke-width="3" stroke-linejoin="round"/>`, 64, 77), 'L');
+  const aSub = Tx(A, 'TOUT POUR LANCER TA REVENTE', `font:500 30px JM;letter-spacing:.2em;color:${C.cream}`);
+
+  // ===== S2 : updates =====
+  const B = E(world, '', '', 'full');
+  const bChip = chip(B, 'sidorf-updates');
+  const bell = E(B, '', svg('0 0 100 110', `<path d="M50 8 C30 8 20 24 20 44 L20 70 L10 84 L90 84 L80 70 L80 44 C80 24 70 8 50 8 Z" fill="#FFD23F" stroke="${C.ink}" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="96" r="10" fill="#FFD23F" stroke="${C.ink}" stroke-width="6"/>`, 170, 187), 'L');
+  const bBadge = E(B, `width:70px;height:70px;border-radius:50%;background:${C.red};display:flex;align-items:center;justify-content:center;font:40px AB;color:#fff`, '3', 'L');
+  const posts = [post(B, 'NOUVEL ARTICLE', 'Zabuza gris', '25 €'), post(B, 'NOUVELLE PÉPITE', 'Nike Running Berlin 2021', '25 €'), post(B, 'UPDATE', 'Veste Nike ADV Therma-FIT', '30 €')];
+
+  // ===== S3 : résultats =====
+  const Cc = E(world, 'perspective:1500px', '', 'full');
+  const cChip = chip(Cc, 'résultats-membres');
+  const SH = [["assets/temoin1.png", 1170, 1415], ["assets/temoin2.png", 1170, 1490], ["assets/temoin3.png", 1170, 1220]];
+  const shots = SH.map(([f, w, h]) => E(Cc, `width:500px;height:${500 * h / w}px;border-radius:26px;overflow:hidden;border:5px solid #3F4147;box-shadow:0 40px 80px rgba(0,0,0,.6);background:#000`, `<img src="${f}" style="width:100%;display:block">`, 'L'));
+  const cV = MW(Cc, 'VRAIS RÉSULTATS', `font:100px AB;color:${C.lime};letter-spacing:-.03em`);
+  const chipsR = [['PREMIÈRES VENTES ✓', C.lime, C.ink], ['SOLDES VINTED ↑', '#fff', C.ink]].map(([l, b, f]) => E(Cc, `background:${b};border-radius:40px;padding:16px 30px 10px;font:42px AB;color:${f};white-space:nowrap;width:max-content;box-shadow:0 16px 30px rgba(0,0,0,.4)`, l, 'L'));
+
+  // ===== S4 : fournisseur =====
+  const fD = Flood(world, C.lime, 540, 900, S4, S4 + .25);
+  const D = E(world, 'perspective:1800px', '', 'full');
+  const dChip = chip(D, 'fournisseur');
+  const ext = EXT(D, '49€', 380, 26, 110, C.ink, '#3E4A12', '#1C2208');
+  const STK = [['RUNNING', 'run', T.run, 260, 1080, -8, C.ink, C.lime], ['LUXE', 'bag', T.lux, 800, 1040, 7, C.blue, '#fff'], ['STREETWEAR', 'hood', T.str, 300, 1250, 5, C.blue, '#fff'], ['SNEAKERS', 'sneak', T.snk, 780, 1240, -6, C.ink, C.lime]];
+  const stk = STK.map(([l, ic, , , , , b, f]) => E(D, `display:flex;align-items:center;gap:14px;background:${b};border-radius:28px;padding:16px 28px 16px 18px;width:max-content;box-shadow:0 18px 30px rgba(0,0,0,.25)`, `${icon(ic, f, b === C.ink ? '#333' : C.ink, 90)}<span style="font:50px AB;color:${f}">${l}</span>`, 'L'));
+  const wE = E(world, `width:2400px;height:1920px;background:${C.blue};clip-path:polygon(12% 0,100% 0,100% 100%,0 100%)`, '', 'L');
+
+  // ===== S5 : contact =====
+  const Ee = E(world, '', '', 'full');
+  const eChip = chip(Ee, 'contact');
+  const q = E(Ee, `background:#fff;border-radius:40px 40px 40px 10px;padding:30px 44px;font:64px AB;color:${C.ink};width:max-content;box-shadow:0 20px 40px rgba(0,0,0,.3)`, 'Une question ?', 'L');
+  const typing = E(Ee, `background:${DG};border-radius:40px;padding:26px 34px;display:flex;gap:14px;width:max-content`, [0, 1, 2].map(() => `<div style="width:22px;height:22px;border-radius:50%;background:#DBDEE1"></div>`).join(''), 'L');
+  const dots = [...typing.children];
+  const ans = E(Ee, `background:${C.lime};border-radius:40px 40px 10px 40px;padding:30px 44px;width:max-content;box-shadow:0 20px 40px rgba(0,0,0,.3)`, `<div style="font:500 24px JM;letter-spacing:.2em;color:${C.ink}">SIDORF</div><div style="font:60px AB;color:${C.ink};line-height:1.1">Je te réponds<br>directement ✓</div>`, 'L');
+
+  // ===== S6 : fin =====
+  const fF = Flood(world, C.ink, 540, 900, S6 - .25, S6);
+  const F = E(world, 'perspective:1800px', '', 'full');
+  const fK = Tx(F, 'BIENVENUE DANS LA', `font:500 38px JM;letter-spacing:.3em;color:${C.cream}`);
+  const fExt = EXT(F, 'SIDORF', 230, 22, 90, C.lime, '#5E7A16', '#1E2A05', '#9BCB2A');
+  const fTeam = Tx(F, 'TEAM', `font:200px AB;color:#fff;letter-spacing:-.04em`);
+  const fPill = E(F, `display:flex;align-items:center;gap:16px;background:${C.lime};border-radius:70px;padding:24px 46px 20px 34px;white-space:nowrap;width:max-content`, `<span style="font:500 28px JM;letter-spacing:.16em;color:${C.ink}">COMMENCE PAR</span><span style="font:60px AB;color:${C.ink}"># fournisseur</span>`, 'L');
+
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'SIDORF TEAM' });
+  const caps = Captions(stage, GROUPS, { hideAfter: S6 - .1 });
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    // S1
+    on(A, t < S2 + .1);
+    if (t < S2 + .1) {
+      const zoom = easeIn(seg(t, S2 - .45, S2 + .05));
+      aK.style.transform = P(540, 280); aK.style.opacity = seg(t, .05, .3) * (1 - zoom);
+      aT.style.transform = P(540, 400); aT.reveal(t, .45, .04); aT.style.opacity = 1 - zoom;
+      const pk = spring(t - .2, 9, .72);
+      panel.style.transform = `translate(540px,${lerp(1900, 1000, pk)}px) translate(-50%,-50%) rotateX(${lerp(40, 10, pk) - zoom * 10}deg) rotateY(${-10 + Math.sin(t * .9) * 4}deg) scale(${1 + zoom * 2.5})`;
+      panel.style.opacity = 1 - seg(t, S2 - .15, S2 + .05);
+      rows.forEach((r, i) => { const act = (i === 0 && t < T.up) || (i === 1 && t >= T.up); r.style.background = act ? (i === 1 ? C.lime : '#404249') : 'transparent'; r.children[0].style.color = act && i === 1 ? C.ink : '#80848E'; r.children[1].style.color = act && i === 1 ? C.ink : '#DBDEE1'; r.style.transform = `translateX(${(1 - spring(t - .6 - i * .08, 14, .7)) * 300}px)`; r.style.opacity = clamp(spring(t - .6 - i * .08, 14, .7) * 2); });
+      on(cursor, t > T.up - .7 && t < S2 - .1);
+      const ck = ease(seg(t, T.up - .7, T.up - .05)), press = win(t, T.up - .05, T.up + .15) ? .85 : 1;
+      cursor.style.transform = `translate(${lerp(980, 640, ck)}px,${lerp(1500, 960, ck)}px) scale(${press})`;
+      on(aSub, win(t, T.ici - .05, T.up - .2)); aSub.style.transform = P(540, 520); aSub.style.opacity = seg(t, T.ici, T.ici + .2);
+    }
+    // S2
+    on(B, win(t, S2 - .05, S3 + .1));
+    if (win(t, S2 - .05, S3 + .1)) {
+      const out = easeIn(seg(t, S3 - .3, S3));
+      bChip.style.transform = P(540, 300) + ` scale(${spring(t - S2, 15, .6)})`;
+      const rk = spring(t - S2 - .1, 14, .5), ring = Math.sin((t - S2) * 30) * 16 * Math.exp(-(t - S2) * 2);
+      bell.style.transform = P(540, 520) + ` scale(${rk}) rotate(${ring}deg)`;
+      on(bBadge, t > S2 + .4); bBadge.style.transform = P(615, 450) + ` scale(${spring(t - S2 - .4, 16, .5)})`;
+      const PT = [T.nouv, T.pep, T.pep + .9];
+      posts.forEach((p, i) => { const k = spring(t - PT[i], 14, .65); on(p, t > PT[i] - .02); p.style.transform = P(lerp(1600, 540, k), 760 + i * 200 + out * 1400) + ` rotate(${(1 - k) * 8}deg)`; });
+    }
+    // S3
+    on(Cc, win(t, S3 - .05, S4 + .3));
+    if (win(t, S3 - .05, S4 + .3)) {
+      cChip.style.transform = P(540, 300) + ` scale(${spring(t - S3, 15, .6)})`;
+      const POS = [[290, 860, -9], [540, 800, 0], [790, 880, 9]];
+      shots.forEach((s, i) => {
+        const t0 = S3 + .25 + i * .25, k = spring(t - t0, 11, .65);
+        const focus = (i === 2 && t > T.prem && t < T.sold) || (i === 0 && t > T.sold) ? 1 : 0;
+        const [x, y, r] = POS[i];
+        s.style.transform = `translate(${x}px,${lerp(1900, y, k)}px) translate(-50%,-50%) rotateY(${(i - 1) * -14 + Math.sin(t + i) * 3}deg) rotateZ(${r * k * (1 - focus)}deg) scale(${lerp(.9, 1.06, spring(focus ? t - (i === 2 ? T.prem : T.sold) : 0, 12, .7))})`;
+        s.style.zIndex = focus ? 3 : (i === 1 ? 2 : 1);
+      });
+      on(cV, t > T.vrais - .05); cV.style.transform = P(540, 440); cV.reveal(t, T.vrais, .03);
+      chipsR.forEach((c, i) => { const t0 = i ? T.sold : T.prem, k = spring(t - t0, 16, .5); on(c, t > t0 - .02); c.style.transform = P(i ? 790 : 300, 1290) + ` rotate(${i ? 5 : -5}deg) scale(${lerp(2, 1, k) * clamp(k * 2)})`; });
+    }
+    fD(t);
+    // S4
+    on(D, win(t, S4 + .2, S5 + .3));
+    if (win(t, S4 + .2, S5 + .3)) {
+      dChip.style.transform = P(540, 300) + ` scale(${spring(t - S4 - .25, 15, .6)})`;
+      const k = spring(t - T.q14 + .2, 9, .62), sway = Math.sin((t - T.q14) * 1.7) * 14 * seg(t, T.q14, T.q14 + .5);
+      on(ext, t > T.q14 - .3);
+      ext.style.transform = `translate(540px,700px) rotateX(${12 + Math.sin(t * 1.3) * 4}deg) rotateY(${lerp(-720, -16, k) + sway}deg) scale(${lerp(.15, 1, k)})`;
+      STK.forEach(([, , t0, x, y, r], i) => { const kk = spring(t - t0, 15, .5); on(stk[i], t > t0 - .02); stk[i].style.transform = P(x, y) + ` rotate(${r + (1 - kk) * 30}deg) scale(${lerp(2, 1, kk) * clamp(kk * 2)})`; });
+    }
+    on(wE, win(t, S5 - .05, S5 + .3));
+    if (win(t, S5 - .05, S5 + .3)) wE.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, S5, S5 + .22)))}px,0)`;
+    // S5
+    on(Ee, win(t, S5 + .15, S6 + .05));
+    if (win(t, S5 + .15, S6 + .05)) {
+      eChip.style.transform = P(540, 300) + ` scale(${spring(t - S5 - .2, 15, .6)})`;
+      const qk = spring(t - S5 - .3, 14, .6);
+      q.style.transform = P(400, 620) + ` scale(${qk}) rotate(-3deg)`; q.style.transformOrigin = '0 100%';
+      on(typing, win(t, T.cont, T.rep)); typing.style.transform = P(760, 860);
+      dots.forEach((d, i) => d.style.transform = `translateY(${-Math.abs(Math.sin(t * 8 - i * .6)) * 14}px)`);
+      const ak = spring(t - T.rep, 14, .55);
+      on(ans, t > T.rep - .02); ans.style.transform = P(640, 900) + ` scale(${ak}) rotate(2deg)`; ans.style.transformOrigin = '100% 100%';
+    }
+    fF(t);
+    // S6
+    on(F, t >= S6 - .05);
+    if (t >= S6 - .05) {
+      fK.style.transform = P(540, 420); fK.style.opacity = seg(t, S6, S6 + .3);
+      const k = spring(t - S6 - .1, 9, .62);
+      fExt.style.transform = `translate(540px,640px) rotateX(10deg) rotateY(${lerp(-540, -12, k) + Math.sin(t * 1.5) * 8}deg) scale(${lerp(.2, 1, k)})`;
+      const tk = spring(t - S6 - .5, 16, .5);
+      fTeam.style.transform = P(540, 860) + ` scale(${lerp(2, 1, tk)})`; fTeam.style.opacity = clamp(tk * 2);
+      on(fPill, t > S6 + .8); fPill.style.transform = P(540, 1150) + ` scale(${spring(t - S6 - .9, 14, .55)})`;
+    }
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_bienvenue49.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  s.whoosh(.3, .6, .3); s.impact(.45, .6); for (let i = 0; i < 5; i++) s.pop(.6 + i * .08, 600 + i * 100, .12);
+  s.tick(T.up - .05, 1500, .25); s.pop(T.up, 900, .2); s.whoosh(S2 - .2, .5, .3);
+  for (let i = 0; i < 3; i++) s.ding(S2 + .1 + i * .18, .12);
+  [T.nouv, T.pep, T.pep + .9].forEach((x, i) => { s.whoosh(x, .3, .2, .4); s.pop(x + .05, 700 + i * 120, .22); });
+  s.whooshDown(S3 - .1, .4, .25); s.stamp(S3, .4); [0, 1, 2].forEach(i => s.whoosh(S3 + .25 + i * .25, .3, .15, (i - 1) * .5));
+  s.pop(T.prem, 800, .3); s.cash(T.sold, .25);
+  s.riser(S4 - .5, S4 + .25, .18); s.impact(S4 + .25, .8); s.whoosh(T.q14 - .2, .5, .3); s.impact(T.q14 + .3, .6);
+  [T.run, T.lux, T.str, T.snk].forEach((x, i) => s.pop(x, 600 + i * 130, .28));
+  s.whoosh(S5, .3, .3, -.5); s.pop(S5 + .3, 700, .25); s.ding(T.rep, .2);
+  s.riser(S6 - .7, S6, .18); s.impact(S6 + .1, .8); s.whoosh(S6 + .2, .5, .3); s.impact(S6 + .5, .5); s.pop(S6 + .9, 700, .3); s.ringout(S6 + 1.2);
+};
+init();
+</script>
+</body></html>
