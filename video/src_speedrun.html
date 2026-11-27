@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Speedrun — Fournisseur 49€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 19 — « SPEEDRUN »   voix : voix_speedrun.mp3
+   Interface de speedrun : titre + catégorie, tableau de splits (6 checkpoints qui passent au vert),
+   gros compteur JOUR, scène à droite qui change à chaque split :
+   clé 49 € → vraie fiche Zabuza gris 25 € → photos QC ✓ → colis 3D → EN VENTE → trophée.
+   « NOUVEAU RECORD ! » doré + confettis. Fin : 49€ + LIEN EN BIO.
+   ===================================================================== */
+const IMG = "assets/vinted_zgris.png", IW = 1170, IH = 2532;
+const WORDS = WORDS_JSON("speedrun");
+const GROUPS = makeGroups(WORDS);
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.0);
+const T = { zero: wt('^zéro'), q49: wt('^quarante'), un: wt('^un$', 0, ''), v25: wt('^vingt-cinq'), photos: wt('^photos'), val: wt('^valides'), sept: wt('^sept'), arr: wt('^arrive'), vente: wt('^vente', 0), rent: wt('^rentabilisé'), rec: wt('^record'), lien: wt('^lien') };
+const SPL = [['J0', 'ACCÈS FOURNISSEUR', T.q49, 0], ['J1', 'COMMANDE · 25 €', T.v25, 1], ['J1', 'PHOTOS QC VALIDÉES', T.val, 1], ['J7', 'RÉCEPTION', T.arr, 7], ['J7', 'MISE EN VENTE', T.vente, 7], ['✓', 'RENTABILISÉ', T.rent, 7]];
+const SE = T.lien - .55;
+const BG = [[0, C.ink], [SE + .25, C.lime]];
+const HITS = [[.1, 14], ...SPL.map(s => [s[2], 12]), [T.rec, 26], [SE + .25, 16]];
+const SCENES = [[0, 'ANY%'], [T.zero, 'SPLIT 1'], [T.un, 'SPLIT 2'], [T.sept, 'SPLIT 4'], [T.rec, 'RECORD'], [SE, 'FOURNISSEUR 49 €']];
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(19);
+  const bg = E(stage, '', '', 'full');
+  const grid = E(stage, `background-image:linear-gradient(rgba(198,255,61,.06) 2px,transparent 2px),linear-gradient(90deg,rgba(198,255,61,.06) 2px,transparent 2px);background-size:60px 60px`, '', 'full');
+  const world = E(stage, 'perspective:1600px', '', 'full');
+  const G = E(world, 'perspective:1500px', '', 'full');
+  const title = MW(G, 'SPEEDRUN', `font:150px AB;color:${C.lime};letter-spacing:-.03em`);
+  const sub = Tx(G, 'RENTABILISER LE FOURNISSEUR · ANY%', `font:500 28px JM;letter-spacing:.18em;color:${C.cream}`);
+  // splits
+  const panel = E(G, `width:500px;border-radius:22px;background:rgba(30,31,38,.92);border:3px solid #3F4147;padding:16px 0;box-shadow:0 30px 60px rgba(0,0,0,.4)`, '', 'L');
+  const rows = SPL.map(([d, l]) => E(panel, `display:flex;align-items:center;gap:14px;height:78px;padding:0 20px;font:500 24px JM;color:#B5BAC1;letter-spacing:.04em`, `<span class="d" style="flex:none;width:58px;font:30px AB;color:#80848E">${d}</span><span style="flex:1;white-space:nowrap">${l}</span><span class="ok" style="font:30px AB;color:${C.lime};opacity:0">✓</span>`));
+  const timer = E(G, `display:flex;align-items:baseline;gap:20px;width:max-content`, `<span style="font:500 34px JM;letter-spacing:.2em;color:${C.cream}">JOUR</span><span class="dn" style="font:150px JM;color:#fff;letter-spacing:-.02em;line-height:1">0</span><span class="ms" style="font:500 50px JM;color:${C.lime}">00:00.0</span>`, 'L');
+  const dn = timer.querySelector('.dn'), ms = timer.querySelector('.ms');
+  // scène à droite
+  const VX = 830, VY = 820;
+  const v1 = E(G, `width:420px;height:420px;border-radius:40px;background:${C.lime};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px`, `${svg('0 0 120 120', `<circle cx="40" cy="60" r="28" fill="none" stroke="${C.ink}" stroke-width="12"/><path d="M66 60 H112 M96 60 V80 M108 60 V74" stroke="${C.ink}" stroke-width="12" stroke-linecap="round"/>`, 160, 160)}<div style="font:110px AB;color:${C.ink};line-height:1">49 €</div>`, 'L');
+  const v2 = E(G, `width:330px;padding:12px;background:#fff;border-radius:24px;display:flex;flex-direction:column;align-items:center;gap:8px`, '', 'L');
+  Crop(v2, IMG, IW, IH, 35, 554, 550, 925, 306, 'position:relative;border-radius:16px');
+  E(v2, `background:${C.lime};border-radius:16px;padding:6px 20px 2px;font:70px AB;color:${C.ink}`, '25 €');
+  const v3 = E(G, 'width:440px;height:420px', [-10, 2, 12].map((r, i) => `<div style="position:absolute;left:${20 + i * 120}px;top:${60 + (i % 2) * 30}px;width:200px;height:250px;background:#fff;padding:10px;border-radius:6px;transform:rotate(${r}deg);box-shadow:0 14px 30px rgba(0,0,0,.35)"><div style="width:180px;height:180px;background:${['#E2E8FF', '#EAFBCB', '#FFE7D6'][i]};display:flex;align-items:center;justify-content:center">${icon('run', '#1D1D25', '#fff', 150)}</div><div style="margin-top:12px;font:500 15px JM;color:#333">QC ${i + 1}/3 ✓</div></div>`).join(''), 'L');
+  const v4 = BOX(G, 260);
+  const v5 = E(G, `width:420px;border-radius:30px;background:#fff;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px`, `<div style="font:500 22px JM;letter-spacing:.2em;color:#666">TON ANNONCE</div>`, 'L');
+  Crop(v5, IMG, IW, IH, 35, 554, 550, 925, 220, 'position:relative;border-radius:16px');
+  E(v5, `background:${C.blue};border-radius:16px;padding:8px 22px 4px;font:56px AB;color:#fff`, 'EN VENTE');
+  const v6 = E(G, '', svg('0 0 200 220', `<path d="M50 20 H150 V70 C150 110 125 135 100 135 C75 135 50 110 50 70 Z" fill="#FFD23F" stroke="${C.ink}" stroke-width="8"/><path d="M50 36 H18 C18 80 40 92 56 92 M150 36 H182 C182 80 160 92 144 92" stroke="${C.ink}" stroke-width="8" fill="none"/><rect x="88" y="135" width="24" height="40" fill="#FFD23F" stroke="${C.ink}" stroke-width="8"/><rect x="55" y="175" width="90" height="30" rx="6" fill="${C.ink}"/>`, 320, 352), 'L');
+  const VIS = [v1, v2, v3, v4, v5, v6];
+  const rec = Tx(G, 'NOUVEAU RECORD !', `font:96px AB;color:${C.ink};background:#FFD23F;padding:18px 40px 10px;border-radius:24px;box-shadow:0 24px 50px rgba(0,0,0,.4)`);
+  const pb = Tx(G, 'PB', `font:80px AB;color:#FFD23F;border:8px solid #FFD23F;border-radius:20px;padding:6px 20px 0`);
+  const conf = Array.from({ length: 40 }, (_, i) => ({ e: E(G, `width:${18 + R() * 22}px;height:${8 + R() * 12}px;background:${[C.lime, '#fff', '#FFD23F', C.blue][i % 4]};border-radius:3px`, '', 'L'), a: R() * Math.PI * 2, d: 400 + R() * 500, r: R() * 900 }));
+  const fE = Flood(world, C.lime, 540, 900, SE, SE + .25);
+  const end = EndCard(world, SE + .25, { tPill: T.lien, price: '49€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const flash = E(stage, 'background:#fff', '', 'full');
+  const overlays = Overlays(stage, { scenes: SCENES, label: 'FOURNISSEUR — 49 €' });
+  const caps = Captions(stage, GROUPS, { hideAfter: T.lien - .1 });
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    const bgc = stepColor(BG, t); bg.style.background = bgc;
+    on(grid, t < SE + .3); grid.style.transform = `translateY(${(t * 40) % 60}px)`;
+    const [sx, sy] = shakeAt(t, HITS); world.style.transform = `translate(${sx}px,${sy}px)`;
+    on(G, t < SE + .3);
+    if (t < SE + .3) {
+      title.style.transform = P(540, 290); title.reveal(t, .05, .04);
+      sub.style.transform = P(540, 400); sub.style.opacity = seg(t, .5, .8);
+      panel.style.transform = `translate(${lerp(-640, 30, spring(t - .4, 12, .75))}px,470px) scale(1.15)`; panel.style.transformOrigin = '0 0';
+      let cur = 0; SPL.forEach((s, i) => { if (t >= s[2]) cur = i + 1; });
+      rows.forEach((r, i) => {
+        const done = t >= SPL[i][2], active = i === cur && t > T.zero;
+        r.style.background = active ? 'rgba(47,71,255,.45)' : 'transparent';
+        r.style.color = done ? '#fff' : '#B5BAC1';
+        r.querySelector('.d').style.color = done ? C.lime : '#80848E';
+        const ok = r.querySelector('.ok'); ok.style.opacity = done ? 1 : 0; ok.style.transform = `scale(${done ? lerp(2, 1, spring(t - SPL[i][2], 16, .5)) : 1})`;
+      });
+      timer.style.transform = `translate(${lerp(-700, 60, spring(t - .6, 12, .75))}px,1150px)`;
+      let day = 0; SPL.forEach(s => { if (t >= s[2]) day = s[3]; });
+      if (t >= T.sept && t < T.arr) day = Math.round(lerp(1, 7, seg(t, T.sept, T.arr)));
+      dn.textContent = String(day);
+      const run = Math.max(0, Math.min(t, T.rec) - T.zero);
+      ms.textContent = `${String(Math.floor(run / 60)).padStart(2, '0')}:${String(Math.floor(run % 60)).padStart(2, '0')}.${Math.floor((run * 10) % 10)}`;
+      ms.style.color = t >= T.rec ? '#FFD23F' : C.lime;
+      VIS.forEach((v, i) => {
+        const a = SPL[i][2] - (i === 0 ? 1.0 : .15), b = i < 5 ? SPL[i + 1][2] - .15 : SE + .3;
+        const vis = t >= a && t < b; on(v, vis);
+        if (vis) { const k = spring(t - a, 12, .6), o = easeIn(seg(t, b - .2, b)); v.style.transform = (i === 3 ? `translate(${VX}px,${VY}px) rotateX(-24deg) rotateY(${30 + (t - a) * 60}deg)` : P(VX, VY)) + ` scale(${k * (1 - o) * (i === 2 ? .72 : .85)})` + (i === 3 ? '' : ` rotate(${(1 - k) * 15}deg)`); }
+      });
+      const rk = spring(t - T.rec + .25, 14, .45);
+      on(rec, t > T.rec - .3); rec.style.transform = P(540, 1020) + ` rotate(-4deg) scale(${lerp(2.4, 1, rk)})`; rec.style.opacity = clamp(rk * 2);
+      on(pb, t > T.rec); pb.style.transform = P(900, 1190) + ` scale(${spring(t - T.rec, 16, .5)})`; pb.style.opacity = (Math.floor(t * 6) % 2) ? 1 : .5;
+      conf.forEach(c => { const d = t - T.rec; on(c.e, d > 0 && d < 1.3); if (d > 0) { const k = easeOut(seg(d, 0, 1.1)); c.e.style.transform = `translate(${540 + Math.cos(c.a) * c.d * k}px,${900 + Math.sin(c.a) * c.d * k + 500 * d * d}px) rotate(${c.r * d}deg)`; c.e.style.opacity = 1 - seg(d, .9, 1.3); } });
+    }
+    const fl = win(t, T.rec, T.rec + .15) ? .4 * (1 - seg(t, T.rec, T.rec + .15)) : 0; on(flash, fl > 0); flash.style.opacity = fl;
+    fE(t); end(t);
+    overlays(t, bgc); caps(t);
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR };
+  window.seek(0);
+  setupPreview(DUR, 'voix_speedrun.mp3');
+}
+
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  // bips de départ façon jeu
+  [.1, .35, .6].forEach(x => s.tone(x, .12, 'square', 660, 660, .1, .003)); s.tone(.85, .25, 'square', 1320, 1320, .12, .003);
+  SPL.forEach(([, , x], i) => { s.tone(x, .1, 'square', 880 + i * 110, 880 + i * 110, .1, .002); s.tone(x + .08, .14, 'square', 1320 + i * 110, 1320 + i * 110, .08, .002); s.whoosh(x - .1, .3, .15, i % 2 ? .4 : -.4); });
+  for (let x = T.sept; x < T.arr; x += .08) s.tick(x, 1400, .06);
+  [0, .12, .24, .36].forEach((d, i) => s.tone(T.rec + d, .3, 'square', [523, 659, 784, 1046][i], [523, 659, 784, 1046][i], .1, .003));
+  s.impact(T.rec, .7); s.ding(T.rec + .45, .2);
+  s.riser(SE - .5, SE + .25, .15); s.impact(SE + .25, .8); s.whoosh(SE + .3, .5, .3); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>
