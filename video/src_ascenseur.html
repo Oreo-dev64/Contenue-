@@ -90,7 +90,7 @@ async function init() {
       const k = spring(t - .05, 9, .72);
       photo.style.transform = `translate(540px,${lerp(1800, 960, k)}px) translate(-50%,-50%) rotateY(${lerp(60, 8, k) + Math.sin(t * 1.3) * 4}deg) rotateZ(${lerp(10, 3, k)}deg)`;
       const prk = spring(t - T.p1 - .3, 11, .8);
-      on(proof, t > T.p1 + .2); proof.style.transform = P(700, lerp(1500, 1280, prk)) + ` rotate(-3deg)`; proof.style.opacity = clamp(prk * 2);
+      on(proof, t > T.p1 + .2); proof.style.transform = P(700, lerp(1500, 1180, prk)) + ` rotate(-3deg)`; proof.style.opacity = clamp(prk * 2);
     }
     on(wB, win(t, S2, S2 + .3)); if (win(t, S2, S2 + .3)) wB.style.transform = `translate(${lerp(1100, -1300, easeIn(seg(t, S2, S2 + .25)))}px,0)`;
     // S2/S3
