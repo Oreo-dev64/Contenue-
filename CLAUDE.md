@@ -14,5 +14,5 @@
 - Timings : transcription Scribe -> `video/words/<nom>.json`.
 - Build : `node build.mjs src_<nom>.html <nom>.html` ; rendu : `node render.mjs <nom>.html <nom>.mp4 60 4 4` ;
   mix : `./mixv.sh <nom> voix_<nom>.mp3 <durée>`.
-- Pas de musique (l'utilisateur l'ajoute). Livrer `_final` (voix + bruitages) et `_voix_seule`, en 60 fps.
+- Prix actuel du fournisseur : 49 € (fournisseur + groupe privé). Pas de musique (l'utilisateur l'ajoute). Livrer `_final` (voix + bruitages) et `_voix_seule`, en 60 fps.
 - Ne jamais inventer de prix d'achat : les demander à l'utilisateur.
