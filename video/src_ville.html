@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dans ma ville — Fournisseur 49€</title>
+<style>
+@font-face{font-family:'AB';src:url(fonts/archivo.woff2) format('woff2')}
+@font-face{font-family:'IT';src:url(fonts/inter.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'IS';src:url(fonts/serif.woff2) format('woff2');font-style:italic}
+@font-face{font-family:'JM';src:url(fonts/mono.woff2) format('woff2')}
+html,body{margin:0;background:#050507;overflow:hidden;height:100%}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:#0B0B10}
+#stage *{box-sizing:border-box}
+.L{position:absolute;left:0;top:0}
+.T{position:absolute;left:0;top:0;white-space:nowrap;line-height:1}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+.p3{transform-style:preserve-3d}
+.lt{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.12;padding:0 .08em;margin:0 -.08em}
+.lt>span{display:inline-block}
+</style></head>
+<body>
+<div id="stage"></div>
+<script src="three.min.js"></script>
+<script src="lib.js"></script>
+<script>
+/* =====================================================================
+   VIDÉO 20 — « DANS MA VILLE » (storytime 3D low-poly)   voix : voix_ville.mp3, 38.6 s
+   Ville en blocs (three.js), personnages en blocs animés, caméra par plans, sous-titre jaune mot par mot,
+   musique originale synthétisée + « huss » à chaque plan, freeze + scratch sur le prix.
+   Histoire : tout le monde paie plein pot → Kevin 400 € → moi le même 25 € → la ville en parle →
+   le vendeur de la boutique « Comment tu fais ? » → je montre le fournisseur → 1 semaine plus tard toute
+   la ville l'a → Kevin dit merci → 49 € lien en bio.
+   ===================================================================== */
+const WORDS = WORDS_JSON("ville");
+const wt = (re, n = 0, fl = 'i') => { let c = 0; for (const w of WORDS) if (new RegExp(re, fl).test(w[0]) && c++ === n) return w[1]; return 0; };
+const LAST = WORDS[WORDS.length - 1][2], DUR = Math.ceil(LAST + 2.2);
+const T = {
+  tout: wt('^tout', 0), run: wt('^Running'), zab: wt('^Zabuza', 0), ber: wt('^Berlin'), mais: wt('^Mais'), plein: wt('^plein'), pot: wt('^pot'),
+  lui: wt('^Lui'), kev: wt('^Kevin', 0), son: wt('^Son'), q400: wt('^quatre'), moi: wt('^Moi'), meme: wt('^même', 0), je25: wt('^Je$', 0, ''), v25: wt('^vingt-cinq'),
+  kev2: wt('^Kevin', 1), lend: wt('^lendemain'), ville2: wt('^toute', 0), vend: wt('^vendeur'), comm: wt('^Comment'), alors: wt('^Alors'), mon4: wt('^fournisseur', 0),
+  photo: wt('^photo,?$'), avant: wt('^avant'), pasbon: wt('^pas$'), remb: wt('^remboursé'), sem: wt('^semaine'), ville3: wt('^toute', 1), etk: wt('^Et$', 0, ''), merci: wt('^merci'),
+  end: wt('^Le$', 1, ''), lien: wt('^lien')
+};
+const C3 = { sky: 0x7EC8F5, grass: 0x6CC24A, road: 0x4A4F57, side: 0xC9CCD3, zab: 0x8E949C, zabD: 0x5B6068, white: 0xF4F4F4 };
+const CUTS = [];  // temps des coupes (pour les « huss »)
+
+async function init() {
+  await loadFonts();
+  const stage = document.getElementById('stage');
+  const R = rng(2026);
+  // ---------- three.js ----------
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(W, H); renderer.domElement.style.cssText = 'position:absolute;left:0;top:0;width:1080px;height:1920px';
+  stage.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(C3.sky); scene.fog = new THREE.Fog(C3.sky, 60, 140);
+  const cam = new THREE.PerspectiveCamera(50, W / H, .1, 400);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x6a8a5a, .75); scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffffff, .8); sun.position.set(20, 40, 25); scene.add(sun);
+  const M = c => new THREE.MeshLambertMaterial({ color: c });
+  const box = (w, h, d, c, x = 0, y = 0, z = 0, parent = scene) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), Array.isArray(c) ? c : M(c)); m.position.set(x, y, z); parent.add(m); return m; };
+  // sol, route, trottoirs
+  box(400, .2, 400, C3.grass, 0, -.1, 0);
+  box(400, .05, 8, C3.road, 0, .03, 0);
+  for (let x = -200; x < 200; x += 6) box(3, .02, .3, 0xffffff, x, .07, 0);
+  box(400, .3, 4, C3.side, 0, .15, -6); box(400, .3, 4, C3.side, 0, .15, 6);
+  // texture texte
+  const texTxt = (txt, bg, fg, w = 512, h = 128, font = 'bold 72px AB') => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = bg; g.fillRect(0, 0, w, h); g.fillStyle = fg; g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, w / 2, h / 2 + 4); const t = new THREE.CanvasTexture(c); return t; };
+  // maisons
+  const HC = [0xF4B6C2, 0xFFE08A, 0xA7D8F0, 0xC8E6A0, 0xF7C59F, 0xD7C4F0, 0xffffff];
+  const RC = [0xD9534F, 0x3B5BA5, 0x8B5A3C, 0x4A4F57];
+  const house = (x, z, rot, i) => {
+    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g);
+    const w = 6 + (i % 3), h = 4 + (i % 2) * 1.5;
+    box(w, h, 6, HC[i % HC.length], 0, h / 2, 0, g);
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(w * .78, 3, 4), M(RC[i % RC.length])); roof.position.set(0, h + 1.5, 0); roof.rotation.y = Math.PI / 4; roof.scale.z = 6 / w; g.add(roof);
+    box(1.2, 2.2, .1, 0x7A4E2D, 0, 1.1, 3.02, g);
+    box(1.2, 1, .1, 0xBFE6FF, -w / 3.2, h * .6, 3.02, g); box(1.2, 1, .1, 0xBFE6FF, w / 3.2, h * .6, 3.02, g);
+    return g;
+  };
+  let hi = 0; for (let x = -90; x <= 90; x += 10) { if (Math.abs(x) > 8) house(x, -13, 0, hi++); house(x + 5, 13, Math.PI, hi++); }
+  // boutique (centre, côté -z)
+  const shop = new THREE.Group(); shop.position.set(0, 0, -13); scene.add(shop);
+  box(14, 7, 6, 0x23252B, 0, 3.5, 0, shop);
+  const sign = box(10, 1.6, .2, [M(0x111111), M(0x111111), M(0x111111), M(0x111111), new THREE.MeshBasicMaterial({ map: texTxt('BOUTIQUE', '#111', '#C6FF3D', 512, 96, 'bold 64px AB') }), M(0x111111)], 0, 6, 3.05, shop);
+  box(10, 3.6, .1, 0xBFE6FF, 0, 2.4, 3.03, shop);
+  const priceTags = [['400 €', -3], ['320 €', 0], ['135 €', 3]].map(([p, x]) => box(2.2, .9, .05, [M(0xffffff), M(0xffffff), M(0xffffff), M(0xffffff), new THREE.MeshBasicMaterial({ map: texTxt(p, '#FF3B30', '#fff', 256, 104, 'bold 70px AB') }), M(0xffffff)], x, 3.2, 3.1, shop));
+  // arbres, lampadaires, nuages
+  for (let x = -85; x <= 85; x += 14) { [-9].forEach(z => { const tr = box(.5, 2, .5, 0x8B5A3C, x + 7, 1, z); const top = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 6), M(0x4FA83D)); top.position.set(x + 7, 3, z); scene.add(top); }); }
+  for (let x = -80; x <= 80; x += 20) if (Math.abs(x) > 5) [-4].forEach(z => { box(.25, 5, .25, 0x2B2D31, x, 2.5, z * 1.5); box(1.2, .3, .5, 0xFFE27A, x, 5, z * 1.5); });
+  const clouds = Array.from({ length: 12 }, (_, i) => { const g = new THREE.Group(); for (let k = 0; k < 4; k++) { const s = new THREE.Mesh(new THREE.SphereGeometry(2 + R() * 1.5, 8, 6), new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x888888 })); s.position.set(k * 2.4 - 3.6, R() * 1.2, R()); g.add(s); } g.position.set(-100 + i * 18, 28 + R() * 8, -40 - R() * 30); scene.add(g); return g; });
+
+  // ---------- personnages ----------
+  const faceTex = (skin, expr) => {
+    const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+    g.fillStyle = skin; g.fillRect(0, 0, 128, 128); g.fillStyle = '#111';
+    if (expr === 'shock') { g.beginPath(); g.arc(40, 52, 13, 0, 7); g.arc(88, 52, 13, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(40, 52, 5, 0, 7); g.arc(88, 52, 5, 0, 7); g.fill(); g.fillStyle = '#5A2320'; g.beginPath(); g.ellipse(64, 96, 14, 18, 0, 0, 7); g.fill(); }
+    else {
+      g.fillRect(30, 44, 16, 20); g.fillRect(82, 44, 16, 20);
+      g.strokeStyle = '#111'; g.lineWidth = 7; g.lineCap = 'round'; g.beginPath();
+      if (expr === 'smile') { g.arc(64, 78, 22, .15 * Math.PI, .85 * Math.PI); }
+      else if (expr === 'smug') { g.moveTo(44, 92); g.quadraticCurveTo(70, 100, 88, 84); g.moveTo(24, 36); g.lineTo(48, 32); g.moveTo(80, 32); g.lineTo(104, 36); }
+      else if (expr === 'sad') { g.arc(64, 112, 22, 1.2 * Math.PI, 1.8 * Math.PI); }
+      else { g.moveTo(46, 92); g.lineTo(82, 92); }
+      g.stroke();
+    }
+    return new THREE.CanvasTexture(c);
+  };
+  const SKINS = ['#F2C9A0', '#E0AC7E', '#C68A5E', '#8D5A3B', '#F5D7B8'];
+  const makeChar = ({ skin = SKINS[0], top = C3.zab, pants = C3.zab, stripe = C3.zabD, hair = 0x2B1E16, cap = null, mustache = false, apron = null } = {}) => {
+    const g = new THREE.Group(); scene.add(g);
+    const faces = {}; ['neutral', 'smile', 'shock', 'smug', 'sad'].forEach(e => faces[e] = new THREE.MeshLambertMaterial({ map: faceTex(skin, e) }));
+    const skinM = M(new THREE.Color(skin));
+    const legL = new THREE.Group(), legR = new THREE.Group(); legL.position.set(-.26, 1.0, 0); legR.position.set(.26, 1.0, 0); g.add(legL, legR);
+    [legL, legR].forEach(L => { box(.46, 1.0, .5, pants, 0, -.5, 0, L); box(.48, .2, .62, C3.white, 0, -.95, .06, L); box(.08, .9, .52, stripe, .2 * (L === legL ? -1 : 1), -.48, 0, L); });
+    const torso = box(1.04, 1.1, .56, top, 0, 1.55, 0, g);
+    box(.06, 1.0, .58, stripe, -.5, 1.55, 0, g); box(.06, 1.0, .58, stripe, .5, 1.55, 0, g);
+    box(.06, .9, .02, 0xD9DCE1, 0, 1.55, .29, g);
+    if (apron) box(.9, 1.3, .05, apron, 0, 1.3, .3, g);
+    const armL = new THREE.Group(), armR = new THREE.Group(); armL.position.set(-.72, 2.0, 0); armR.position.set(.72, 2.0, 0); g.add(armL, armR);
+    [armL, armR].forEach(A => { box(.38, 1.0, .44, top, 0, -.45, 0, A); box(.36, .22, .4, skinM, 0, -1.03, 0, A); });
+    const head = new THREE.Group(); head.position.set(0, 2.55, 0); g.add(head);
+    const hm = box(.86, .86, .86, [skinM, skinM, skinM, skinM, faces.neutral, skinM], 0, .1, 0, head);
+    box(.92, .26, .92, hair, 0, .58, 0, head); box(.92, .6, .2, hair, 0, .32, -.38, head);
+    if (cap) { box(.96, .22, .96, cap, 0, .66, 0, head); box(.8, .06, .5, cap, 0, .56, -.6, head); }
+    if (mustache) box(.5, .1, .05, 0x2B1E16, 0, -.06, .45, head);
+    const shadow = new THREE.Mesh(new THREE.CircleGeometry(.8, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .22 })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = .32; g.add(shadow);
+    const c = { g, legL, legR, armL, armR, head, hm, faces, torso };
+    c.face = e => { if (hm.material[4] !== faces[e]) { hm.material[4] = faces[e]; } };
+    c.pose = ({ x = 0, z = 0, y = .3, ry = 0, walk = 0, ph = 0, wave = 0, armUp = 0, look = 0, bob = 0, jump = 0, point = 0 } = {}) => {
+      g.position.set(x, y + Math.abs(Math.sin(ph)) * .12 * walk + bob + jump, z); g.rotation.y = ry;
+      const sw = Math.sin(ph) * .7 * walk;
+      legL.rotation.x = sw; legR.rotation.x = -sw;
+      armL.rotation.x = -sw + -armUp * 2.6; armR.rotation.x = sw - point * 1.5 - wave * 2.8; armR.rotation.z = wave ? Math.sin(ph * 3) * .3 : 0;
+      head.rotation.y = look;
+    };
+    return c;
+  };
+  const HERO = makeChar({ skin: SKINS[0], hair: 0x5A3A22 });
+  const KEV = makeChar({ skin: SKINS[1], hair: 0x111111, cap: 0xFF3B30 });
+  const SELL = makeChar({ skin: SKINS[4], top: 0xffffff, pants: 0x2B2D31, stripe: 0x2B2D31, hair: 0x6B6B6B, mustache: true, apron: 0x2F47FF });
+  const PAL = [[0x111111, 0x111111, 0x444444], [0x1D2A44, 0x1D2A44, 0x3B4F7A], [0x2F47FF, 0x111111, 0xC6FF3D], [0x3A3F55, 0x3A3F55, 0x8E949C], [0x0E3B22, 0x111111, 0x3FA36C], [0xffffff, 0x111111, 0xcccccc]];
+  const crowd = Array.from({ length: 18 }, (_, i) => { const p = PAL[i % PAL.length]; const c = makeChar({ skin: SKINS[i % SKINS.length], top: p[0], pants: p[1], stripe: p[2], hair: [0x111111, 0x5A3A22, 0xC9A04A, 0x2B1E16][i % 4], cap: i % 5 === 0 ? [0x2F47FF, 0xFFD23F, 0x111111][i % 3] : null }); return { c, side: i % 2 ? 1 : -1, off: R() * 160 - 80, sp: (1.6 + R() * 1.2) * (i % 2 ? 1 : -1), lane: (i % 2 ? 1 : -1) * (5 + R() * 1.6), i }; });
+
+  // ---------- overlays 2D ----------
+  const ov = E(stage, '', '', 'full');
+  const pill = (txt, bg, fg, size = 64) => E(ov, `display:flex;align-items:center;gap:10px;background:${bg};color:${fg};font:${size}px AB;padding:12px 30px 6px;border-radius:26px;border:6px solid #fff;box-shadow:0 12px 24px rgba(0,0,0,.35);white-space:nowrap;width:max-content;line-height:1`, txt, 'L');
+  const bubble = (txt, size = 52) => E(ov, `background:#fff;color:${C.ink};font:${size}px AB;padding:18px 30px 12px;border-radius:30px;border:5px solid ${C.ink};box-shadow:0 10px 20px rgba(0,0,0,.25);white-space:nowrap;width:max-content;line-height:1`, txt, 'L');
+  const L = {
+    run: pill('RUNNING', C.ink, C.lime, 58), zab: pill('ZABUZA', C.ink, C.lime, 58), ber: pill('BERLIN', C.ink, C.lime, 58),
+    plein: pill('PLEIN POT', C.red, '#fff', 80), kev: pill('KEVIN', '#fff', C.ink, 70), p400: pill('400 €', C.red, '#fff', 90), p25: pill('25 €', C.lime, C.ink, 110),
+    eq: Tx(ov, '=', `font:200px AB;color:#fff;-webkit-text-stroke:10px ${C.ink};paint-order:stroke fill`), q: Tx(ov, '?!', `font:170px AB;color:#FFD23F;-webkit-text-stroke:10px ${C.ink};paint-order:stroke fill`),
+    comm: bubble('Comment tu fais ?!', 60), merci: bubble('Merci frérot 🙏'.replace(' 🙏', ' !'), 60),
+  };
+  const gossip = ['25 € ?!', 'Le même ?!', 'Comment il fait ?', 'Sérieux ?!', '25 €...'].map(t => bubble(t, 44));
+  const freeze = E(ov, `background:rgba(11,11,16,.35);mix-blend-mode:multiply`, '', 'full');
+  // cartes plein écran
+  const card = (txt, sub, bg, fg) => E(stage, `background:${bg};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px`, `<div style="font:500 34px JM;letter-spacing:.3em;color:${fg};opacity:.75">${sub}</div><div style="font:150px AB;color:${fg};letter-spacing:-.04em;text-align:center;line-height:1">${txt}</div>`, 'full');
+  const cardL = card('LE<br>LENDEMAIN', '☀', C.blue, '#fff'), cardS = card('1 SEMAINE<br>PLUS TARD', '⏩', C.ink, C.lime);
+  // téléphone
+  const ph = E(stage, 'width:520px;height:1000px', '', 'L');
+  ph.innerHTML = `<div style="position:absolute;inset:0;background:#0E0E14;border-radius:74px;box-shadow:0 50px 100px rgba(0,0,0,.6),inset 0 0 0 3px #34343f"></div><div style="position:absolute;left:16px;top:16px;right:16px;bottom:16px;border-radius:60px;overflow:hidden;background:#F4F4F7">
+    <div style="height:150px;background:${C.lime};display:flex;align-items:flex-end;gap:18px;padding:0 28px 22px"><div style="width:76px;height:76px;border-radius:50%;background:${C.ink};display:flex;align-items:center;justify-content:center;font:40px AB;color:${C.lime}">F</div><div><div style="font:44px AB;color:${C.ink}">FOURNISSEUR</div><div style="font:500 22px JM;color:${C.ink}">49 € · groupe privé</div></div></div>
+    <div class="st" style="padding:26px 24px;display:flex;flex-direction:column;gap:18px"></div></div>`;
+  const stEl = ph.querySelector('.st');
+  const STEPS = [['📸'.replace('📸', '1'), 'Tu envoies la photo'], ['2', 'Photos avant l\'envoi'], ['3', 'Pas bon ? Remboursé']];
+  const stepEls = STEPS.map(([n, l]) => E(stEl, `display:flex;align-items:center;gap:18px;background:#fff;border-radius:26px;padding:18px 22px;box-shadow:0 3px 0 #e4e4ea`, `<div style="flex:none;width:70px;height:70px;border-radius:50%;background:${C.blue};display:flex;align-items:center;justify-content:center;font:40px AB;color:#fff">${n}</div><div style="font:700 32px IT;color:#111">${l}</div><div class="ck" style="margin-left:auto;width:52px;height:52px;border-radius:50%;background:#18A957;display:flex;align-items:center;justify-content:center;font:30px AB;color:#fff">✓</div>`));
+  const end = EndCard(stage, T.end + .25, { tPill: T.lien, price: '49€', sub: 'FOURNISSEUR + GROUPE PRIVÉ', cats: 'RUNNING · STREETWEAR · SNEAKERS' });
+  const fEnd = Flood(stage, C.lime, 540, 900, T.end, T.end + .25);
+  const overlays = Overlays(stage, { scenes: [[0, '']], hud: false });
+  // sous-titre jaune mot par mot (style storytime)
+  const capEl = Tx(stage, '', `font:96px AB;color:#FFE14D;-webkit-text-stroke:18px ${C.ink};paint-order:stroke fill;letter-spacing:-.01em`);
+  const CW = WORDS.filter(w => !/^[?!:;«»]$/.test(w[0]));
+
+  // ---------- plans caméra ----------
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const SHOTS = [
+    [0, V(-24, 38, 46), V(14, 30, 40), V(0, 2, -2), V(0, 2, -2)],              // vue aérienne
+    [T.tout - .1, V(-12, 4.2, -3.5), V(2, 4.2, -3.5), V(-10, 2.2, 6), V(4, 2.2, 6)],    // trottoir, passants
+    [T.run - .05, V(-15, 3.0, -1), V(-14, 2.9, 0), V(-15, 2.4, 6), V(-14, 2.4, 6)],
+    [T.zab - .05, V(3, 3.0, -1), V(4, 2.9, 0), V(3, 2.4, 6), V(4, 2.4, 6)],
+    [T.ber - .05, V(19, 3.0, -1), V(20, 2.9, 0), V(19, 2.4, 6), V(20, 2.4, 6)],
+    [T.mais - .1, V(0, 7, 18), V(0, 5, 12), V(0, 4, -10), V(0, 3.5, -10)],    // boutique
+    [T.lui - .1, V(-2, 3.2, -1), V(-1, 3, -2.2), V(-2, 2.8, -6), V(-2, 2.9, -6)], // Kevin
+    [T.moi - .1, V(0, 3.4, 4), V(0, 3.2, 2.5), V(0, 2.4, -6), V(0, 2.4, -6)],  // les deux
+    [T.je25 - .05, V(1.5, 3, -2), V(1.6, 2.9, -2.8), V(1.6, 2.9, -6), V(1.6, 2.9, -6)], // zoom moi
+    [T.kev2 - .1, V(-2, 3.1, -2.4), V(-2, 3.0, -3.4), V(-2, 3.0, -6), V(-2, 3.0, -6)],  // Kevin choqué
+    [T.ville2 - .1, V(14, 9, 12), V(-6, 8, 12), V(0, 2, -5), V(0, 2, -5)],      // la ville en parle
+    [T.vend - .1, V(4, 3.4, 2), V(3, 3.2, 0), V(-1, 2.6, -7), V(0, 2.6, -7)],   // vendeur
+    [T.alors - .1, V(3, 3, -1), V(2.4, 3, -2), V(1.6, 2.6, -6), V(1.6, 2.6, -6)], // je montre
+    [T.ville3 - .2, V(-30, 22, 28), V(20, 18, 24), V(0, 2, 0), V(0, 2, 0)],    // toute la ville l'a
+    [T.etk - .1, V(0, 3.4, 2.5), V(0, 3.2, 1.2), V(0, 2.6, -6), V(0, 2.6, -6)],    // merci
+  ];
+  SHOTS.forEach(s => CUTS.push(s[0]));
+  const shotAt = t => { let i = 0; SHOTS.forEach((s, k) => { if (t >= s[0]) i = k; }); const s = SHOTS[i], e = i + 1 < SHOTS.length ? SHOTS[i + 1][0] : DUR; const u = ease(seg(t, s[0], e)); return { p: s[1].clone().lerp(s[2], u), l: s[3].clone().lerp(s[4], u), i, t0: s[0] }; };
+  const proj = (v) => { const p = v.clone().project(cam); return [(p.x + 1) / 2 * W, (1 - p.y) / 2 * H, p.z]; };
+  const place = (el, v3, t0, t1, t, dy = 0, rot = 0, bigFrom = 1.8) => { const vis = t >= t0 && t < t1; on(el, vis); if (!vis) return; const [x, y, z] = proj(v3); const k = spring(t - t0, 16, .5); el.style.transform = P(x, y + dy) + ` rotate(${rot}deg) scale(${lerp(bigFrom, 1, k) * clamp(k * 3) * (1 - easeIn(seg(t, t1 - .15, t1)))})`; };
+
+  window.seek = function (TT) {
+    const t = clamp(TT, 0, DUR - 1e-4);
+    // cartes plein écran
+    const cL = win(t, T.lend - .15, T.ville2 - .05), cS = win(t, T.sem - .25, T.ville3 - .2);
+    on(cardL, cL); if (cL) { const k = seg(t, T.lend - .15, T.lend + .1), o = seg(t, T.ville2 - .3, T.ville2 - .05); cardL.style.clipPath = `circle(${k * 120 * (1 - o)}% at 50% 50%)`; }
+    on(cardS, cS); if (cS) { const k = seg(t, T.sem - .25, T.sem), o = seg(t, T.ville3 - .45, T.ville3 - .2); cardS.style.clipPath = `inset(0 ${(1 - k) * 100}% 0 ${o * 100}%)`; }
+    const day = t < T.lend - .1 || t > T.ville2 - .3 ? 1 : 0;
+    // ambiance : ville uniforme à la fin (tout le monde en gris)
+    const allZab = t > T.ville3 - .3;
+    // foule
+    crowd.forEach(o => {
+      const x = ((o.off + t * o.sp + 400) % 200) - 100;
+      const gossipMode = win(t, T.ville2 - .15, T.vend - .1) && o.i < 10, partyMode = allZab;
+      const hideNear = o.lane < 0 && Math.abs(x) < 14 && t > T.mais - .2 && !win(t, T.ville2 - .15, T.vend - .1) && !(t > T.ville3 - .3);
+      o.c.g.visible = !hideNear;
+      let px = (o.lane > 0 && t < T.mais) ? -20 + (o.i >> 1) * 4.6 + t * Math.sign(o.sp) * .9 : x, pz = o.lane, ry = o.sp > 0 ? Math.PI / 2 : -Math.PI / 2, walk = 1, ph = t * 7 + o.i;
+      if (gossipMode) { const a = o.i / 10 * Math.PI * 2; px = Math.cos(a) * 4.5; pz = -5 + Math.sin(a) * 3; ry = Math.atan2(-px, -5 - pz + 0.0001) ; walk = 0; }
+      if (partyMode && o.i < 12) { const a = o.i / 12 * Math.PI + t * .2; px = Math.cos(a) * 8; pz = -9 - Math.abs(Math.sin(a)) * 2.5; ry = Math.atan2(-px, 6 - pz) * 0 ; walk = 0; }
+      o.px = px; o.pz = pz;
+      o.c.pose({ x: px, z: pz, ry, walk, ph, bob: (gossipMode || partyMode) ? Math.abs(Math.sin(t * 6 + o.i)) * .25 : 0, wave: partyMode ? 1 : 0 });
+      o.c.face(gossipMode ? 'shock' : partyMode ? 'smile' : 'neutral');
+      const mats = o.c.torso.material; if (allZab && !o.zab) { o.zab = true; o.c.g.traverse(m => { if (m.isMesh && m.material && m.material.color && m !== o.c.hm && m.geometry.type === 'BoxGeometry' && m.material.color.getHex() === PAL[o.i % PAL.length][0]) m.material = M(C3.zab); }); }
+    });
+    // Kevin
+    const kevOn = t >= T.lui - .2;
+    KEV.g.visible = kevOn;
+    const kShock = win(t, T.je25 + .4, T.lend) || win(t, T.ville2, T.ville3 - .5) ? 1 : 0;
+    KEV.pose({ x: -2, z: -6, ry: t > T.moi ? .5 : 0, bob: Math.sin(t * 2) * .03, armUp: win(t, T.q400, T.moi) ? .35 : 0, jump: win(t, T.kev2, T.kev2 + .5) ? Math.sin(seg(t, T.kev2, T.kev2 + .5) * Math.PI) * .6 : 0, wave: t > T.merci ? 1 : 0, ph: t * 5 });
+    KEV.face(t > T.merci - .3 ? 'smile' : kShock ? 'shock' : t > T.son ? 'smug' : 'neutral');
+    // héros
+    const heroIn = t >= T.moi - .3;
+    HERO.g.visible = heroIn;
+    const hx = lerp(9, 1.6, ease(seg(t, T.moi - .3, T.meme + .2)));
+    const walking = t < T.meme + .2;
+    HERO.pose({ x: hx, z: -6, ry: walking ? -Math.PI / 2 : -.4, walk: walking ? 1 : 0, ph: t * 8, point: win(t, T.alors, T.ville3 - .4) ? 1 : 0, bob: Math.sin(t * 2.2) * .03, wave: t > T.merci ? 1 : 0 });
+    HERO.face(t > T.je25 ? 'smug' : 'smile');
+    if (t > T.ville3 - .3) { HERO.pose({ x: 1.2, z: -6, ry: -.3, wave: 1, ph: t * 5, bob: Math.abs(Math.sin(t * 6)) * .2 }); HERO.face('smile'); KEV.pose({ x: -1.2, z: -6, ry: .3, wave: t > T.merci ? 1 : 0, ph: t * 5, bob: Math.abs(Math.sin(t * 6 + 1)) * .2 }); }
+    // vendeur
+    const sOn = t >= T.vend - .2 && t < T.ville3 - .3;
+    SELL.g.visible = sOn;
+    const sx = lerp(-1, 0, 1), sz = lerp(-10.5, -7.5, ease(seg(t, T.vend, T.comm)));
+    SELL.pose({ x: -.8, z: sz, ry: .2, walk: t < T.comm ? 1 : 0, ph: t * 9, armUp: win(t, T.comm, T.alors) ? .6 : 0 });
+    SELL.face(t > T.alors + .6 ? 'shock' : 'neutral');
+    // nuages + caméra
+    clouds.forEach((c, i) => c.position.x = ((-100 + i * 18 + t * 1.5 + 300) % 220) - 110);
+    const sh = shotAt(t);
+    if (sh.i >= 2 && sh.i <= 4) { const w = crowd.filter(o => o.lane > 0)[[0, 1, 2][sh.i - 2]]; const u = seg(t, sh.t0, sh.t0 + .8); sh.p = V(w.px + lerp(2.4, 1.6, u), lerp(3.4, 3.1, u), w.pz - lerp(7.5, 6.2, u)); sh.l = V(w.px, 2.2, w.pz); }
+    const shake = (win(t, T.je25, T.je25 + .4) ? .06 : 0) + (win(t, T.kev2, T.kev2 + .5) ? .05 : 0);
+    cam.position.copy(sh.p).add(V(Math.sin(t * 50) * shake, Math.cos(t * 43) * shake, 0)); cam.lookAt(sh.l);
+    const fov = 50 - (win(t, T.v25, T.v25 + 1.2) ? 8 * spring(t - T.v25, 10, .8) : 0); if (cam.fov !== fov) { cam.fov = fov; cam.updateProjectionMatrix(); }
+    scene.background.setHex(day ? C3.sky : 0x2B3A67); scene.fog.color.setHex(day ? C3.sky : 0x2B3A67);
+    renderer.render(scene, cam);
+    // étiquettes
+    const nearest = (sp) => crowd.filter(o => Math.sign(o.sp) === 1).map(o => ({ o, x: ((o.off + t * o.sp + 400) % 200) - 100 })).sort((a, b) => Math.abs(a.x - sp) - Math.abs(b.x - sp))[0];
+    const tagOn = (el, tx, t0, t1) => { const n = nearest(tx); place(el, V(n.x, 4.1, n.o.lane), t0, t1, t, 0, -4); };
+    [[L.run, T.run, T.zab - .05], [L.zab, T.zab, T.ber - .05], [L.ber, T.ber, T.mais - .1]].forEach(([el, a, b], i) => { const k = spring(t - a, 16, .5); on(el, win(t, a, b)); el.style.transform = P(540, 520) + ` rotate(${i % 2 ? 4 : -4}deg) scale(${lerp(2, 1, k) * clamp(k * 3)})`; });
+    const pk = spring(t - T.plein, 16, .45); on(L.plein, win(t, T.plein, T.lui - .1)); L.plein.style.transform = P(540, 760) + ` rotate(-8deg) scale(${lerp(2.6, 1, pk)})`;
+    { const k = spring(t - T.kev, 16, .5); on(L.kev, win(t, T.kev, T.son)); L.kev.style.transform = P(540, 560) + ` rotate(-3deg) scale(${lerp(2, 1, k) * clamp(k * 3)})`; }
+    { const k = spring(t - T.q400, 16, .45); on(L.p400, win(t, T.q400, T.kev2 + .6)); L.p400.style.transform = P(760, 520) + ` rotate(6deg) scale(${lerp(2.4, 1, k) * clamp(k * 3)})`; }
+    place(L.eq, V(0, 2.5, -6), T.meme, T.je25, t, 0, 0);
+    { const k = spring(t - T.v25, 16, .45); on(L.p25, win(t, T.v25, T.lend - .1)); L.p25.style.transform = P(320, 560) + ` rotate(-6deg) scale(${lerp(2.6, 1, k) * clamp(k * 3)})`; }
+    { const k = spring(t - T.kev2, 18, .45); on(L.q, win(t, T.kev2, T.lend - .1)); L.q.style.transform = P(800, 720) + ` rotate(10deg) scale(${lerp(2.2, 1, k) * clamp(k * 3)})`; }
+    gossip.forEach((b, i) => { const a = i / 5 * Math.PI * 2; place(b, V(Math.cos(a) * 4.5, 4.3 + (i % 2) * .6, -5 + Math.sin(a) * 3), T.ville2 + i * .18, T.vend - .1, t, 0, (i % 2 ? 5 : -5)); });
+    place(L.comm, V(-.8, 4.4, -7.5), T.comm, T.alors, t, 0, -4);
+    place(L.merci, V(-1.2, 4.5, -6), T.merci, T.end, t, 0, -5);
+    // freeze (scratch) sur le prix
+    const fr = win(t, T.v25, T.v25 + .9); on(freeze, fr); freeze.style.opacity = fr ? .6 * (1 - seg(t, T.v25 + .6, T.v25 + .9)) : 0;
+    // téléphone
+    const phOn = win(t, T.alors + .3, T.sem - .2);
+    on(ph, phOn);
+    if (phOn) { const k = spring(t - T.alors - .3, 10, .7), o = easeIn(seg(t, T.sem - .5, T.sem - .2)); ph.style.transform = P(540, lerp(2300, 860, k) + o * 1500) + ` rotate(${lerp(-12, -3, k)}deg)`; [T.photo, T.avant, T.pasbon].forEach((x, i) => { const sk = spring(t - x, 16, .6); stepEls[i].style.transform = `translateX(${(1 - sk) * 500}px)`; stepEls[i].querySelector('.ck').style.transform = `scale(${spring(t - x - .4, 18, .5)})`; }); }
+    fEnd(t); end(t);
+    overlays(t, C.ink);
+    // sous-titre mot par mot
+    let cw = null; for (const w of CW) if (t >= w[1] - .02 && t < w[2] + .25) cw = w;
+    on(capEl, !!cw && t < T.lien - .1);
+    if (cw) { const txt = cw[0].replace(/^(quatre)$/i, '400').replace(/^(cents)$/i, '€').replace(/^vingt-cinq$/i, '25').replace(/^quarante-neuf$/i, '49').replace(/^euros[.,]?$/i, '€').toUpperCase(); if (capEl.textContent !== txt) capEl.textContent = txt; const k = spring(t - cw[1], 22, .5); capEl.style.transform = P(540, 1300) + ` scale(${lerp(1.35, 1, k)})`; }
+  };
+  window.VIDEO = { w: W, h: H, duration: DUR }; window.__T = T;
+  window.seek(0);
+  setupPreview(DUR, 'voix_ville.mp3');
+}
+
+// ---------- son : musique originale + huss + effets ----------
+window.buildAudio = async function (ctx) {
+  const s = SFX(ctx);
+  const BPM = 100, b = 60 / BPM, END = DUR - .3;
+  const out = ctx.createGain(); out.gain.value = .55; out.connect(ctx.destination);
+  const r = rng(5), nb = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = r() * 2 - 1;
+  const silent = t => win(t, T.v25 - .05, T.v25 + 1.0);  // coupure de la musique pendant le scratch
+  const env = (node, t, a, d, g) => { const gg = ctx.createGain(); gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(g, t + a); gg.gain.exponentialRampToValueAtTime(0.0001, t + d); node.connect(gg).connect(out); };
+  const osc = (t, d, type, f0, f1, g, a = .005) => { const o = ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + d); env(o, t, a, d, g); o.start(t); o.stop(t + d + .05); };
+  const nz = (t, d, type, f, g, q = 1) => { const src = ctx.createBufferSource(); src.buffer = nb; const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; src.connect(fl); env(fl, t, .002, d, g); src.start(t, r() * .5); src.stop(t + d + .05); };
+  const CH = [[220, 261.6, 329.6], [174.6, 220, 261.6], [261.6, 329.6, 392], [196, 246.9, 293.7]]; // Am F C G
+  for (let beat = 0, t = 0; t < END; beat++, t = beat * b) {
+    if (silent(t)) continue;
+    const bar = Math.floor(beat / 4), inBar = beat % 4, ch = CH[bar % 4];
+    if (inBar === 0 || inBar === 2 || (inBar === 3 && bar % 2)) osc(t, .35, 'sine', 120, 42, .9);         // kick
+    if (inBar === 1 || inBar === 3) { nz(t, .18, 'bandpass', 1800, .5, .8); osc(t, .08, 'triangle', 220, 160, .15); } // clap
+    for (let h = 0; h < 2; h++) nz(t + h * b / 2, .05, 'highpass', 8000, h ? .12 : .18);                     // hats
+    if (inBar === 0) osc(t, b * 3.6, 'triangle', ch[0] / 4, ch[0] / 4, .35, .02);                         // basse
+    if (inBar === 0 || inBar === 2) ch.forEach((f, i) => osc(t + i * .03, .5, 'sine', f * 2, f * 2, .05, .01)); // accords pluck
+  }
+  // « huss » à chaque coupe
+  CUTS.forEach((x, i) => { if (x > .1) s.whoosh(x + .05, .4, .4, i % 2 ? .5 : -.5); });
+  s.pop(T.run, 700, .25); s.pop(T.zab, 800, .25); s.pop(T.ber, 900, .25);
+  s.stamp(T.plein, .8); s.pop(T.kev, 600, .25); s.cash(T.q400 + .2, .25); s.pop(T.meme, 500, .2);
+  // record scratch + freeze
+  const sc = T.v25 - .05; osc(sc, .25, 'sawtooth', 900, 120, .12, .002); nz(sc, .25, 'bandpass', 2500, .35, 2); osc(sc + .25, .2, 'sawtooth', 200, 1200, .08, .002);
+  s.impact(T.v25, .6); s.ding(T.v25 + .1, .2);
+  s.glitch(T.kev2, .15); s.impact(T.kev2 + .1, .4);
+  s.whoosh(T.lend - .1, .5, .4); s.ding(T.lend + .1, .15);
+  for (let i = 0; i < 14; i++) nz(T.ville2 + i * .12, .3, 'bandpass', 500 + r() * 800, .05, 2);   // murmures de la foule
+  [0, 1, 2, 3, 4].forEach(i => s.pop(T.ville2 + i * .18, 700 + i * 90, .15));
+  s.pop(T.comm, 500, .3); s.whoosh(T.alors + .3, .5, .3);
+  [T.photo, T.avant, T.pasbon].forEach((x, i) => { s.pop(x, 800 + i * 140, .25); s.tick(x + .4, 2400, .1); });
+  s.whoosh(T.sem - .25, .6, .4); s.riser(T.sem, T.ville3 - .2, .15); s.impact(T.ville3 - .2, .6);
+  s.pop(T.merci, 900, .3); s.ding(T.merci + .1, .2);
+  s.riser(T.end - .5, T.end + .25, .15); s.impact(T.end + .25, .8); s.pop(T.lien, 700, .3); s.ringout(T.lien + .3);
+};
+init();
+</script>
+</body></html>

@@ -13,7 +13,7 @@ const [, , html, out, a3 = '30', a4 = '4', a5 = '4'] = process.argv;
 if (!html || !out) { console.log('usage: node render.mjs page.html out.mp4 [fps] [subframes] [workers]'); process.exit(1); }
 const run = (args) => new Promise((res, rej) => { const p = spawn('ffmpeg', args, { stdio: 'inherit' }); p.on('close', c => c ? rej(new Error('ffmpeg ' + c)) : res()); });
 const url = pathToFileURL(path.resolve(html)).href + '?render';
-const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
+const browser = await chromium.launch({ args: ['--allow-file-access-from-files', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 
 const probe = await browser.newPage();
 await probe.goto(url);
